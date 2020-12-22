@@ -11,22 +11,19 @@ double Vec3D::EuclidDist(const Vec3D vec2) const
 
 Vec3D Vec3D::LimVec(const short limit)
 {
-    double norm_val = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+    double x_ = x;
+    double y_ = y;
+    double z_ = z;
+    double norm_val = sqrt(pow(x_, 2) + pow(y_, 2) + pow(z_, 2));
 
     if (norm_val > limit)
     {
         double norm_fact = limit / norm_val;
-        double x_ = norm_fact * x;
-        double y_ = norm_fact * y;
-        double z_ = norm_fact * z;
-
-        return Vec3D(x_, y_, z_);
+        x_ = norm_fact * x_;
+        y_ = norm_fact * y_;
+        z_ = norm_fact * z_;
     }
-    else
-    {
-        return Vec3D(x, y, z);
-    }
-    
+    return Vec3D(x_, y_, z_);
 }
 
 Vec3D Vec3D::Abs()
@@ -71,7 +68,7 @@ bool operator != (const Vec3D vec1, const Vec3D vec2)
 
 std::ostream& operator<<(std::ostream& os, const Vec3D v)
 {
-    return os << v.x << ", " << v.y << ", " << v.z;
+    return os << v.x << "," << v.y << "," << v.z;
 }
 
 

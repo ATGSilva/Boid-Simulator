@@ -29,3 +29,4 @@ void Reset(Boid&);
 
 // Flock functions
 std::vector<Boid> GenFlock(int, double, double, double, double);
+std::vector<Boid> ResetBoids(std::vector<Boid>);

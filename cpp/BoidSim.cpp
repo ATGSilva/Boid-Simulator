@@ -19,7 +19,7 @@ void FindNeighbours(std::vector<Boid>& flock)
     int num_boids = flock.size();
     double near_alert = 300.0; // Defines near distance
     double close_alert = 10.0; // Defines close distance
-    Vec3D sep_ij = Vec3D();
+    Vec3D disp_ij = Vec3D();
 
     for (int i = 0; i < num_boids-1; i++)
         for (int j = i+1; j < num_boids; j++)
@@ -29,9 +29,9 @@ void FindNeighbours(std::vector<Boid>& flock)
                 // If close, append neighbour pos to boid close list 
                 if(dist < close_alert)
                 {
-                    sep_ij = flock[i].pos - flock[j].pos;
-                    flock[i].sum_pos_sep = flock[i].sum_pos_sep + (flock[j].mass * sep_ij);
-                    flock[j].sum_pos_sep = flock[j].sum_pos_sep + (flock[i].mass * (-1 * sep_ij));
+                    disp_ij = flock[i].pos - flock[j].pos;
+                    flock[i].sum_pos_sep = flock[i].sum_pos_sep + (flock[j].mass * disp_ij);
+                    flock[j].sum_pos_sep = flock[j].sum_pos_sep - (flock[i].mass * disp_ij);
                     flock[i].sum_cmass = flock[i].sum_cmass + flock[j].mass;
                     flock[j].sum_cmass = flock[j].sum_cmass + flock[i].mass;
                     flock[i].num_close += 1;
@@ -63,7 +63,6 @@ void Simulate(std::vector<Boid>& flock, std::ofstream& myfile)
             Reset(flock[i]);
             myfile << TIME << "," << iters << "," << flock[i].id << "," << flock[i].pos << "\n";
         }
-    ;
 }
 
 
@@ -83,13 +82,13 @@ int main()
     myfile.open ("pos_dat.csv");
     myfile << "Time,Frame,ID,X,Y,Z\n";
     
-    
     while (TIME < duration)
     {
         // Find all neighbours and store them in boid objects
         
         FindNeighbours(flock);
         Simulate(flock, myfile);
+        // flock = ResetBoids(flock);
         
         std::cout << "[";
         for (int i = 0; i < 70; i++)

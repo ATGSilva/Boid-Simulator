@@ -46,7 +46,7 @@ Boid::Boid(Vec3D p, Vec3D v, int ident)
 }
 
 void Reset(Boid& boid)
-{
+{   
     boid.cohere_force = Vec3D();
     boid.sep_force = Vec3D();
     boid.align_force = Vec3D();
@@ -64,8 +64,9 @@ void UpdatePos(Boid& boid)
 {
     Vec3D total_force;
     total_force = boid.cohere_force + boid.sep_force + boid.align_force;
-    total_force.LimVec(MAX_FORCE);
+    total_force = total_force.LimVec(MAX_FORCE);
     total_force = total_force + boid.wall_force;
+    total_force = total_force.LimVec(MAX_FORCE);
 
     Vec3D acc = ((1/boid.mass) * total_force).LimVec(MAX_ACC);
     boid.vel = (boid.vel + (dt * acc)).LimVec(MAX_VEL);
@@ -81,6 +82,21 @@ std::vector<Boid> GenFlock(int num_boids, double pos_ulim, double pos_llim, doub
         Vec3D rand_pos = RandVec(pos_ulim, pos_llim);
         Vec3D rand_vel = RandVec(vel_ulim, vel_llim);
         flock.emplace_back(rand_pos, rand_vel, i);
+    }
+    return flock;
+}
+
+std::vector<Boid> ResetBoids(std::vector<Boid> flock_)
+{
+    std::vector<Boid> flock;
+    flock.reserve(flock_.size());
+    for (Boid b : flock_)
+    {
+        Vec3D pos_ = b.pos;
+        Vec3D vel_ = b.vel;
+        int id_ = b.id;
+
+        flock.emplace_back(pos_, vel_, id_);
     }
     return flock;
 }

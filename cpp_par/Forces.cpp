@@ -89,12 +89,10 @@ void WallForce(Boid& boid)
     Vec3D wall_force = Vec3D();
 
     if (x_ubound || y_ubound || z_ubound)
-    {   
         wall_force = wall_force + (-1) * WALL_FORCE * (which_pos_wall * (boid.pos - u_bounds));
-    }
+
     if (x_lbound || y_lbound || z_lbound)
-    {
         wall_force = wall_force + WALL_FORCE * (which_neg_wall * (l_bounds - boid.pos));
-    }
-    boid.wall_force = wall_force.LimVec(MAX_FORCE);
+
+    boid.wall_force = wall_force.LimVec(WALL_FORCE);
 }

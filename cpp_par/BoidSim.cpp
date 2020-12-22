@@ -21,8 +21,9 @@ void FindNeighbours(std::vector<Boid>& flock)
     double close_alert = 10.0; // Defines close distance
     Vec3D disp_ij = Vec3D();
 
-    for (int i = 0; i < num_boids-1; i++)
-        for (int j = i+1; j < num_boids; j++)
+    #pragma omp parallel for
+    for (int i = 0; i < num_boids; i++)
+        for (int j = 0; j < num_boids; j++)
             {
                 // Calculate distances between boids
                 double dist = flock[i].pos.EuclidDist(flock[j].pos);
@@ -31,38 +32,32 @@ void FindNeighbours(std::vector<Boid>& flock)
                 {
                     disp_ij = flock[i].pos - flock[j].pos;
                     flock[i].sum_pos_sep = flock[i].sum_pos_sep + (flock[j].mass * disp_ij);
-                    flock[j].sum_pos_sep = flock[j].sum_pos_sep - (flock[i].mass * disp_ij);
                     flock[i].sum_cmass = flock[i].sum_cmass + flock[j].mass;
-                    flock[j].sum_cmass = flock[j].sum_cmass + flock[i].mass;
                     flock[i].num_close += 1;
-                    flock[j].num_close += 1;
                 }
                 // If not close but near, append neighbour pos to boid near list 
-                else if(dist < near_alert) {
+                else if(dist < near_alert) 
+                {
                     flock[i].sum_pos_cohere = flock[i].sum_pos_cohere + ((1/flock[j].mass) * flock[j].pos);
-                    flock[j].sum_pos_cohere = flock[j].sum_pos_cohere + ((1/flock[i].mass) * flock[i].pos);
                     flock[i].sum_vel_align = flock[i].sum_vel_align + (flock[j].mass * flock[j].vel);
-                    flock[j].sum_vel_align = flock[j].sum_vel_align + (flock[i].mass * flock[i].vel);
                     flock[i].sum_nmass = flock[i].sum_nmass + flock[j].mass;
-                    flock[j].sum_nmass = flock[j].sum_nmass + flock[i].mass;
                     flock[i].num_near += 1;
-                    flock[j].num_near += 1;
                 }
             } 
 }
 
 void Simulate(std::vector<Boid>& flock, std::ofstream& myfile)
-{
+{   
     for (int i = 0; i < num_boids; i++)
-        {
-            CohereForce(flock[i]);
-            SepForce(flock[i]);
-            AlignForce(flock[i]);
-            WallForce(flock[i]);
-            UpdatePos(flock[i]);
-            Reset(flock[i]);
-            myfile << TIME << "," << iters << "," << flock[i].id << "," << flock[i].pos << "\n";
-        }
+    {
+        CohereForce(flock[i]);
+        SepForce(flock[i]);
+        AlignForce(flock[i]);
+        WallForce(flock[i]);
+        UpdatePos(flock[i]);
+        Reset(flock[i]);
+        myfile << TIME << "," << iters << "," << flock[i].id << "," << flock[i].pos << "\n";
+    } 
 }
 
 
@@ -88,7 +83,8 @@ int main()
         
         FindNeighbours(flock);
         Simulate(flock, myfile);
-        
+
+
         if (iters % 10 == 0)
         {
             std::cout << "[";

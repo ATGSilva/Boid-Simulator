@@ -1,3 +1,4 @@
+// -*- adamgillard-cpp -*-
 #include <iostream>
 #include <cmath>
 #include <random>
@@ -35,6 +36,14 @@ Vec3D Vec3D::Abs()
     return Vec3D(x_, y_, z_);
 }
 
+double Vec3D::Mag()
+{   
+    double x_ = x;
+    double y_ = y;
+    double z_ = z;
+    return sqrt(pow(x_, 2) + pow(y_, 2) + pow(z_, 2));
+}
+
 // Define vector arithmetic operators
 Vec3D operator * (const Vec3D vec, const float a)
 {
@@ -69,6 +78,12 @@ bool operator != (const Vec3D vec1, const Vec3D vec2)
 std::ostream& operator<<(std::ostream& os, const Vec3D v)
 {
     return os << v.x << "," << v.y << "," << v.z;
+}
+
+
+double DotProd(Vec3D vec1, Vec3D vec2)
+{
+    return ((vec1.x * vec2.x) + (vec1.y * vec2.y) + (vec1.z * vec2.z));
 }
 
 

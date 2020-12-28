@@ -1,3 +1,4 @@
+// -*- adamgillard-cpp -*-
 #pragma once
 #include "Vec3D.h"
 #include <vector>

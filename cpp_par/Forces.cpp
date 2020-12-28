@@ -1,3 +1,4 @@
+// -*- adamgillard-cpp -*-
 #include "Boid.h"
 #include "Forces.h"
 #include "Vec3D.h"
@@ -95,4 +96,11 @@ void WallForce(Boid& boid)
         wall_force = wall_force + WALL_FORCE * (which_neg_wall * (l_bounds - boid.pos));
 
     boid.wall_force = wall_force.LimVec(WALL_FORCE);
+}
+
+Vec3D RandWindForce()
+{
+    double uwind_force = 10;
+    double lwind_force = 3;
+    return RandVec(lwind_force, uwind_force);
 }

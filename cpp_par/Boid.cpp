@@ -1,3 +1,4 @@
+// -*- adamgillard-cpp -*-
 #include "Boid.h"
 #include "Vec3D.h"
 #include "Forces.h"

@@ -20,7 +20,7 @@ void FindNeighbours(std::vector<Boid>& flock)
     int num_boids = flock.size();
     double near_alert = 250.0; // Defines near distance
     double close_alert = 10.0; // Defines close distance
-    double vision_ang = M_PI/2; // Defines angle over which a boid can see
+    double vision_ang = M_PI_2; // Defines angle over which a boid can see
     Vec3D disp_ij = Vec3D();
 
     // Perform Neighbour calculations over parallel i and sequential j (must perform over whole nxn matrix to prevent race conditions)
@@ -63,17 +63,23 @@ void FindNeighbours(std::vector<Boid>& flock)
             } 
 }
 
-void Simulate(std::vector<Boid>& flock, std::ofstream& myfile)
+void Simulate(std::vector<Boid>& flock, Vec3D& wind_force, std::ofstream& myfile)
 {   
     // Calculate forces and movement updates on every boid in the flock parallel-wise
     #pragma omp parallel for
     for (int i = 0; i < num_boids; i++)
     {
+        // Wind flock affects the entire flock by the same amount
+        flock[i].wind_force = wind_force;
+        // Other forces are dependent on the neighbours
         CohereForce(flock[i]);
         SepForce(flock[i]);
         AlignForce(flock[i]);
+        // Finally the bounding force from the walls
         WallForce(flock[i]);
+        // Update the positions of the boids
         UpdatePos(flock[i]);
+        // Reset the boid properties that vary each timestep
         Reset(flock[i]);
 
         // Make sure only one thread writes to file at a time using critical - may slow things down
@@ -112,17 +118,20 @@ int main()
     auto time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
     std::cout << "Generated flock with " << flock.size() << " boids in " << time.count()/1e6 << " seconds.\n";
 
-
     std::ofstream myfile;
     myfile.open ("pos_dat.csv");
     myfile << "Time,Frame,ID,X,Y,Z\n";
+
+    Vec3D wind_force = RandWindForce();
     
     while (TIME < duration)
     {
         // Find all neighbours and store them in boid objects
         
         FindNeighbours(flock);
-        Simulate(flock, myfile);
+        Simulate(flock, wind_force, myfile);
+        wind_force = WindEvo(wind_force);
+        // std::cout << wind_force << std::endl;
 
         ProgBar();        
 

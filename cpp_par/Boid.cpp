@@ -17,6 +17,7 @@ Boid::Boid()
     cohere_force = Vec3D();
     sep_force = Vec3D();
     align_force = Vec3D();
+    wind_force = Vec3D();
     wall_force = Vec3D();
     sum_pos_cohere = Vec3D();
     sum_pos_sep = Vec3D();
@@ -36,6 +37,7 @@ Boid::Boid(Vec3D p, Vec3D v, int ident)
     cohere_force = Vec3D();
     sep_force = Vec3D();
     align_force = Vec3D();
+    wind_force = Vec3D();
     wall_force = Vec3D();
     sum_pos_cohere = Vec3D();
     sum_pos_sep = Vec3D();
@@ -51,6 +53,7 @@ void Reset(Boid& boid)
     boid.cohere_force = Vec3D();
     boid.sep_force = Vec3D();
     boid.align_force = Vec3D();
+    boid.wind_force = Vec3D();
     boid.wall_force = Vec3D();
     boid.sum_pos_cohere = Vec3D();
     boid.sum_pos_sep = Vec3D();
@@ -64,7 +67,7 @@ void Reset(Boid& boid)
 void UpdatePos(Boid& boid)
 {
     Vec3D total_force;
-    total_force = boid.cohere_force + boid.sep_force + boid.align_force;
+    total_force = boid.cohere_force + boid.sep_force + boid.align_force + boid.wind_force;
     total_force = total_force.LimVec(MAX_FORCE);
     total_force = total_force + boid.wall_force;
     total_force = total_force.LimVec(MAX_FORCE);

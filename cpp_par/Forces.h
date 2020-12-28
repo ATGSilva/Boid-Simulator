@@ -6,3 +6,4 @@ void SepForce(Boid&);
 void AlignForce(Boid&);
 void WallForce(Boid&);
 Vec3D RandWindForce();
+Vec3D WindEvo(Vec3D);

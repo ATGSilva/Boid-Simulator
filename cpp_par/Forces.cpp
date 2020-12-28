@@ -35,7 +35,7 @@ void SepForce(Boid& boid)
     int num_close = boid.num_close;
     if (num_close != 0)
     {
-        const float m_sum = boid.sum_nmass;
+        const float m_sum = boid.sum_cmass;
         const Vec3D pos_sum = boid.sum_pos_sep;
         const Vec3D bvel = boid.vel;
 
@@ -100,7 +100,17 @@ void WallForce(Boid& boid)
 
 Vec3D RandWindForce()
 {
-    double uwind_force = 10;
-    double lwind_force = 3;
+    double uwind_force = MAX_WIND;
+    double lwind_force = -MAX_WIND;
     return RandVec(lwind_force, uwind_force);
+}
+
+Vec3D WindEvo(Vec3D wind_force)
+{
+    double uwind_change = dt;
+    double lwind_change = -dt;
+    double rand_factor = RandVal(0.1, 4);
+    Vec3D wind_change = rand_factor * RandVec(lwind_change, uwind_change);
+
+    return (wind_force + wind_change).LimVec(MAX_WIND);
 }

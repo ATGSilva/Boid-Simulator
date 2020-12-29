@@ -14,6 +14,8 @@ Boid::Boid()
     pos = Vec3D();
     vel = Vec3D();
     mass = 1;
+
+    // Properties to reset on each timestep
     cohere_force = Vec3D();
     sep_force = Vec3D();
     align_force = Vec3D();
@@ -28,12 +30,15 @@ Boid::Boid()
     num_close = 0;
 }
 
-Boid::Boid(Vec3D p, Vec3D v, int ident) 
+Boid::Boid(Vec3D p, Vec3D v, int ident, int type_) 
 {
     pos = p;
     vel = v;
     mass = 1;
     id = ident;
+    type = type_;
+
+    // Properties to reset on each timestep
     cohere_force = Vec3D();
     sep_force = Vec3D();
     align_force = Vec3D();
@@ -85,7 +90,7 @@ std::vector<Boid> GenFlock(int num_boids, double pos_ulim, double pos_llim, doub
     {
         Vec3D rand_pos = RandVec(pos_ulim, pos_llim);
         Vec3D rand_vel = RandVec(vel_ulim, vel_llim);
-        flock.emplace_back(rand_pos, rand_vel, i);
+        flock.emplace_back(rand_pos, rand_vel, i, 0);
     }
     return flock;
 }

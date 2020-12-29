@@ -15,6 +15,29 @@
 float TIME = 0;
 int iters = 0;
 
+int ArgChecks(int argc, char* argv[])
+{
+    if (argc != 3)
+    {
+        std::cerr << "Usage: ./BoidSimOMP <Integer NUM_THREADS> <Integer NUM_BOIDS>" << std::endl;
+        return 1;
+    }
+
+    int threads = std::strtol(argv[1], nullptr, 0);
+    if (threads < 1 || threads > omp_get_max_threads())
+    {
+        std::cerr << "<NUM_THREADS> must be between 1 and " << omp_get_max_threads() << std::endl;
+        return 1;
+    }
+    int num_boids = std::strtol(argv[2], nullptr, 0);
+    if (num_boids < 2)
+    {
+        std::cerr << "<NUM_BOIDS> must be a positive integer more than 1." << std::endl;
+        return 1;
+    }
+    else return 0;
+}
+
 void FindNeighbours(std::vector<Boid>& flock)
 {
     int num_boids = flock.size();
@@ -30,41 +53,47 @@ void FindNeighbours(std::vector<Boid>& flock)
             {
                 // Calculate distances between boids
                 double dist = flock[i].pos.EuclidDist(flock[j].pos);
-                double mag = (flock[i].vel.Mag() * flock[j].vel.Mag());
-                double ang_ij = 0;
-                if (mag != 0)
-                     ang_ij = acos(DotProd(flock[i].vel, flock[j].vel) / mag);
 
-                if (ang_ij < vision_ang)
+                if (dist != 0)    
                 {
-                    // If close, append neighbour pos to boid close list 
-                    if(dist < close_alert)
-                    {   
-                        // Calculate displacement 
-                        disp_ij = flock[i].pos - flock[j].pos;
-                        // Calculate mass-scaled position sum to use in calculating seperation force
-                        flock[i].sum_pos_sep = flock[i].sum_pos_sep + (flock[j].mass * disp_ij);
-                        // Add close-boid mass to close-mass sum and add 1 to number of detected close boids (for sanity check & debug)
-                        flock[i].sum_cmass = flock[i].sum_cmass + flock[j].mass;
-                        flock[i].num_close += 1;
-                    }
-                    // If not close but near, append neighbour pos to boid near list 
-                    else if(dist < near_alert) 
+                    double mag = (flock[i].vel.Mag() * flock[j].vel.Mag());
+                    double ang_ij = 0;
+                    if (mag != 0)
+                        ang_ij = acos(DotProd(flock[i].vel, flock[j].vel) / mag);
+
+                    if (ang_ij < vision_ang)
                     {
-                        // Calculate mass-scaled position sum to use for coherence force
-                        flock[i].sum_pos_cohere = flock[i].sum_pos_cohere + ((1/flock[j].mass) * flock[j].pos);
-                        // Calculate mass-scaled velocity sum to use for alignment force
-                        flock[i].sum_vel_align = flock[i].sum_vel_align + (flock[j].mass * flock[j].vel);
-                        // Add near-boid mass to close-mass sum and add 1 to number of detected near boids (for sanity check & debug)
-                        flock[i].sum_nmass = flock[i].sum_nmass + flock[j].mass;
-                        flock[i].num_near += 1;
+                        // If close, append neighbour pos to boid close list 
+                        if(dist < close_alert)
+                        {   
+                            // Calculate displacement 
+                            disp_ij = flock[i].pos - flock[j].pos;
+                            // Calculate mass-scaled position sum to use in calculating seperation force
+                            flock[i].sum_pos_sep = flock[i].sum_pos_sep + (flock[j].mass * disp_ij);
+                            // Add close-boid mass to close-mass sum and add 1 to number of detected close boids (for sanity check & debug)
+                            flock[i].sum_cmass = flock[i].sum_cmass + flock[j].mass;
+                            flock[i].num_close += 1;
+                        }
+                        // If not close but near, append neighbour pos to boid near list 
+                        else if(dist < near_alert) 
+                        {
+                            // Calculate mass-scaled position sum to use for coherence force
+                            flock[i].sum_pos_cohere = flock[i].sum_pos_cohere + ((1/flock[j].mass) * flock[j].pos);
+                            // Calculate mass-scaled velocity sum to use for alignment force
+                            flock[i].sum_vel_align = flock[i].sum_vel_align + (flock[j].mass * flock[j].vel);
+                            // Add near-boid mass to close-mass sum and add 1 to number of detected near boids (for sanity check & debug)
+                            flock[i].sum_nmass = flock[i].sum_nmass + flock[j].mass;
+                            flock[i].num_near += 1;
+                        }
                     }
                 }
+                
             } 
 }
 
 void Simulate(std::vector<Boid>& flock, Vec3D& wind_force, std::ofstream& myfile)
 {   
+    int num_boids = flock.size();
     // Calculate forces and movement updates on every boid in the flock parallel-wise
     #pragma omp parallel for
     for (int i = 0; i < num_boids; i++)
@@ -106,9 +135,17 @@ void ProgBar()
     // End Progress Bar
 }
 
-int main()
+int main(int argc, char* argv[])
 {
-    omp_set_num_threads(10); // Set OpenMP to use 10 threads
+    int argcheck = ArgChecks(argc, argv);
+    if (argcheck)
+        return 1;
+
+    int threads = std::strtol(argv[1], nullptr, 0);
+    int num_boids = std::strtol(argv[2], nullptr, 0);
+    std::cout << "Program initialised for " << num_boids << " boids using " << threads << " OpenMP threads." << std::endl;
+
+    omp_set_num_threads(threads); // Set OpenMP to use 10 threads
     auto tstart = std::chrono::high_resolution_clock::now();
 
     // Generate the flock in a vector on the heap
@@ -120,24 +157,25 @@ int main()
 
     std::ofstream myfile;
     myfile.open ("pos_dat.csv");
-    myfile << "Time,Frame,ID,X,Y,Z\n";
+    myfile << "Time,Frame,ID,X,Y,Z,Type\n";
 
     Vec3D wind_force = RandWindForce();
     
     while (TIME < duration)
     {
         // Find all neighbours and store them in boid objects
-        
         FindNeighbours(flock);
+        // Complete force calculations, update positions and reset boids
         Simulate(flock, wind_force, myfile);
+        // Evolve the wind force
         wind_force = WindEvo(wind_force);
-        // std::cout << wind_force << std::endl;
 
         ProgBar();        
 
         TIME += dt;
         iters ++;
     }
+    ProgBar();
     std::cout << std::endl;
     
     myfile.close();

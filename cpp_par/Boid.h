@@ -8,12 +8,13 @@ class Boid
 {
 public:
     Boid();
-    Boid(Vec3D, Vec3D, int);
+    Boid(Vec3D, Vec3D, int, int);
 
     Vec3D pos, vel, acc;
     Vec3D cohere_force, sep_force, align_force, wind_force, wall_force;
     float mass;
     int id;
+    int type; // 0 = Boid, 1 = Predator
 
     // Neighbour values
     Vec3D sum_pos_cohere, sum_pos_sep, sum_vel_align;

@@ -114,3 +114,4 @@ Vec3D WindEvo(Vec3D wind_force)
 
     return (wind_force + wind_change).LimVec(MAX_WIND);
 }
+

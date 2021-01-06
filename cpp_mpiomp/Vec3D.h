@@ -21,7 +21,7 @@ struct Vec3D
     friend Vec3D operator-(const Vec3D, const Vec3D);
     friend bool operator!=(const Vec3D, const Vec3D);
     friend std::ostream& operator<<(std::ostream&, const Vec3D);
-};
+}__attribute__((__packed__));
 
 double DotProd(Vec3D, Vec3D);
 

@@ -3,10 +3,10 @@
 #include <cmath>
 
 const short dims = 3;
-const float duration = 200;
-const float dt = 0.2;
+const float duration = 400;
+const float dt = 0.5;
 
-const int buffer_for = 5;
+const int buffer_for = 1;
 
 const double wall_ubound = 1000;
 const double wall_lbound = 0;
@@ -20,9 +20,9 @@ const float MAX_FORCE = 10;
 const float MAX_ACC = 18;
 const float MAX_VEL = 50;
 const float WALL_FORCE = MAX_FORCE;
-const float MAX_WIND = 3;
+const float MAX_WIND = 1.5;
 
-const float C_STR = 0.05;
+const float C_STR = 0.06;
 const float S_STR = 0.25;
 const float A_STR = 0.35;
 

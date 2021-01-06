@@ -8,47 +8,39 @@
 #include <vector>
 #include <memory>
 
-
 Boid::Boid() {}
 
 Boid::Boid(Vec3D p, Vec3D v, int ident) 
 {
     pos = p;
     vel = v;
-    mass = 1;
+    mass = 1.f;
     id = ident;
-
-    // Properties to reset on each timestep
-    cohere_force = Vec3D();
-    sep_force = Vec3D();
-    align_force = Vec3D();
-    wind_force = Vec3D();
-    wall_force = Vec3D();
-
-    near_list = std::vector<int>();
-    close_list = std::vector<int>();
-    buffer_list = std::vector<int>();
 }
 
-void Reset(Boid& boid, int iters)
-{   
-    boid.cohere_force = Vec3D();
-    boid.sep_force = Vec3D();
-    boid.align_force = Vec3D();
-    boid.wind_force = Vec3D();
-    boid.wall_force = Vec3D();
-    boid.near_list.clear();
-    boid.close_list.clear();
-    if (iters % buffer_for != 0 || buffer_for == 1)
-        boid.buffer_list.clear();
+Boid::Boid(Vec3D p, Vec3D v, float m, int ident)
+{
+    pos = p;
+    vel = v;
+    mass = m;
+    id = ident;
 }
 
-void UpdatePos(Boid& boid)
+Forces::Forces()
+{
+    Vec3D cohere_force;
+    Vec3D sep_force;
+    Vec3D align_force;
+    Vec3D wind_force;
+    Vec3D wall_force;
+}
+
+void UpdatePos(Boid& boid, Forces& force_list)
 {
     Vec3D total_force;
-    total_force = boid.cohere_force + boid.sep_force + boid.align_force + boid.wind_force;
+    total_force = force_list.cohere_force + force_list.sep_force + force_list.align_force + force_list.wind_force;
     total_force = total_force.LimVec(MAX_FORCE);
-    total_force = total_force + boid.wall_force;
+    total_force = total_force + force_list.wall_force;
     total_force = total_force.LimVec(MAX_FORCE);
 
     Vec3D acc = ((1/boid.mass) * total_force).LimVec(MAX_ACC);
@@ -63,9 +55,9 @@ std::vector<Boid> GenFlock(int num_boids, double pos_ulim, double pos_llim, doub
     for (int i = 0; i < num_boids; i++) 
     {
         Vec3D rand_pos = RandVec(pos_ulim, pos_llim);
-        rand_pos.z = 0;
+        rand_pos.z = 0.;
         Vec3D rand_vel = RandVec(vel_ulim, vel_llim);
-        flock.emplace_back(rand_pos, rand_vel, i);
+        flock.emplace_back(Boid(rand_pos, rand_vel, i));
     }
     return flock;
 }

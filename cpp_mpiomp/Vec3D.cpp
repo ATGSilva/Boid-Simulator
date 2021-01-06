@@ -1,8 +1,9 @@
 // -*- adamgillard-cpp -*-
+#include "Vec3D.h"
 #include <iostream>
 #include <cmath>
 #include <random>
-#include "Vec3D.h"
+
 
 // Define vector Euclidian Distance function
 double Vec3D::EuclidDist(const Vec3D vec2) const

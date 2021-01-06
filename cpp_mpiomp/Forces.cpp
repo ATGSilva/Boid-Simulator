@@ -10,9 +10,10 @@
 #include <memory>
 
 
-void CohereForce(const std::vector<Boid>& flock, Boid& boid)
+Vec3D CohereForce(std::vector<Boid>& flock, Boid& boid, std::vector<int>& near_list)
 {
-    int num_near = boid.near_list.size();
+    Vec3D cohere_force;
+    int num_near = near_list.size();
     if (num_near != 0)
     {
         float m_sum = 0;
@@ -20,7 +21,7 @@ void CohereForce(const std::vector<Boid>& flock, Boid& boid)
         const Vec3D bpos = boid.pos;
         const Vec3D bvel = boid.vel;
 
-        for (int id : boid.near_list)
+        for (int id : near_list)
         {
             m_sum += flock[id].mass;
             pos_sum = pos_sum + ((1/flock[id].mass) * flock[id].pos);
@@ -31,21 +32,24 @@ void CohereForce(const std::vector<Boid>& flock, Boid& boid)
         if (target_mag != 0)
             target = target * (MAX_VEL / target_mag);
 
-        boid.cohere_force = (target - bvel) * C_STR;
+        cohere_force = (target - bvel) * C_STR;
     }
-    else boid.cohere_force = Vec3D(); 
+    else cohere_force = Vec3D();
+
+    return cohere_force;
 }
 
-void SepForce(const std::vector<Boid>& flock, Boid& boid)
+Vec3D SepForce(std::vector<Boid>& flock, Boid& boid, std::vector<int>& close_list)
 {
-    int num_close = boid.close_list.size();
+    Vec3D sep_force;
+    int num_close = close_list.size();
     if (num_close != 0)
     {
         float m_sum = 0;
         Vec3D pos_sum = Vec3D();
         const Vec3D bvel = boid.vel;
 
-        for (int id : boid.close_list)
+        for (int id : close_list)
         {
             Vec3D disp_idb = boid.pos - flock[id].pos;
             m_sum += flock[id].mass;
@@ -57,22 +61,24 @@ void SepForce(const std::vector<Boid>& flock, Boid& boid)
         if (target_mag != 0)
             target = target * (MAX_VEL / target_mag);
 
-        boid.sep_force = (target - bvel) * S_STR;
+        sep_force = (target - bvel) * S_STR;
     }
-    else boid.sep_force = Vec3D();
+    else sep_force = Vec3D();
+
+    return sep_force;
 }
 
-void AlignForce(const std::vector<Boid>& flock, Boid& boid)
+Vec3D AlignForce(std::vector<Boid>& flock, Boid& boid, std::vector<int>& near_list)
 {
-    int num_near = boid.near_list.size();
-
+    Vec3D align_force;
+    int num_near = near_list.size();
     if (num_near != 0)
     {
         float m_sum = 0;
         Vec3D vel_sum = Vec3D();
         const Vec3D bvel = boid.vel;
 
-        for (int id : boid.near_list)
+        for (int id : near_list)
         {
             m_sum += flock[id].mass;
             vel_sum = vel_sum + (flock[id].mass * flock[id].vel);
@@ -83,12 +89,14 @@ void AlignForce(const std::vector<Boid>& flock, Boid& boid)
         if (target_mag != 0)
             target = target * (MAX_VEL / target_mag);
 
-        boid.align_force = (target - bvel) * A_STR; 
+        align_force = (target - bvel) * A_STR; 
     }
-    else boid.align_force = Vec3D();
+    else align_force = Vec3D();
+
+    return align_force;
 }
 
-void WallForce(Boid& boid)
+Vec3D WallForce(Boid& boid)
 {
     const double x = boid.pos.x;
     const double y = boid.pos.y;
@@ -114,7 +122,7 @@ void WallForce(Boid& boid)
     if (x_lbound || y_lbound || z_lbound)
         wall_force = wall_force +  WALL_FORCE * (which_neg_wall * (l_bounds - boid.pos));
 
-    boid.wall_force = wall_force.LimVec(WALL_FORCE);
+    return wall_force.LimVec(WALL_FORCE);
 }
 
 Vec3D RandWindForce()

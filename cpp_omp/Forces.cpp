@@ -1,15 +1,33 @@
-// -*- adamgillard-cpp -*-
-#include "Boid.h"
-#include "Forces.h"
-#include "Vec3D.h"
-#include "Settings.h"
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+Forces.cpp
+
+Dependancy file to be used for building BoidSimOMP.cpp.
+Contains boid force calculation functions.
+
+FUNCTION SIGNATURE - RETURN TYPE
+    CohereForce(const vector<Boid>&, Boid&) - void
+    SepForce(const vector<Boid>&, Boid&) - void
+    AlignForce(const vector<Boid>&, Boid&) - void
+    WallForce(Boid&) - void
+    RandWindForce - Vec3D
+    WindEvo(Vec3D) - Vec3D
+*/
+
 #include <cmath>
 #include <iostream>
 #include <random>
 #include <vector>
 #include <memory>
+#include <omp.h>
+#include "Boid.h"
+#include "Forces.h"
+#include "Vec3D.h"
+#include "Settings.h"
 
 
+// Core behavioural forces --------------------------------------------
 void CohereForce(const std::vector<Boid>& flock, Boid& boid)
 {
     int num_near = boid.near_list.size();
@@ -88,24 +106,25 @@ void AlignForce(const std::vector<Boid>& flock, Boid& boid)
     else boid.align_force = Vec3D();
 }
 
+// Bounding wall force ------------------------------------------------
 void WallForce(Boid& boid)
 {
     const double x = boid.pos.x;
     const double y = boid.pos.y;
     const double z = boid.pos.z;
 
-    int x_ubound = (x > wall_ubound);
-    int y_ubound = (y > wall_ubound);
-    int z_ubound = (z > wall_ubound);
+    int x_ubound = (x > WALL_UBOUND);
+    int y_ubound = (y > WALL_UBOUND);
+    int z_ubound = (z > WALL_UBOUND);
 
-    int x_lbound = (x < wall_lbound);
-    int y_lbound = (y < wall_lbound);
-    int z_lbound = (z < wall_lbound);
+    int x_lbound = (x < WALL_LBOUND);
+    int y_lbound = (y < WALL_LBOUND);
+    int z_lbound = (z < WALL_LBOUND);
 
     Vec3D which_pos_wall = Vec3D(x_ubound, y_ubound, z_ubound);
     Vec3D which_neg_wall = Vec3D(x_lbound, y_lbound, z_lbound);
-    Vec3D u_bounds = Vec3D(wall_ubound, wall_ubound, wall_ubound);
-    Vec3D l_bounds = Vec3D(wall_lbound, wall_lbound, wall_lbound);
+    Vec3D u_bounds = Vec3D(WALL_UBOUND, WALL_UBOUND, WALL_UBOUND);
+    Vec3D l_bounds = Vec3D(WALL_LBOUND, WALL_LBOUND, WALL_LBOUND);
     Vec3D wall_force = Vec3D();
 
     if (x_ubound || y_ubound || z_ubound)
@@ -117,6 +136,7 @@ void WallForce(Boid& boid)
     boid.wall_force = wall_force.LimVec(WALL_FORCE);
 }
 
+// Wind force functions -----------------------------------------------
 Vec3D RandWindForce()
 {
     double uwind_force = MAX_WIND;
@@ -126,11 +146,10 @@ Vec3D RandWindForce()
 
 Vec3D WindEvo(Vec3D wind_force)
 {
-    double uwind_change = dt;
-    double lwind_change = -dt;
+    double uwind_change = DT;
+    double lwind_change = -DT;
     double rand_factor = RandVal(0.1, 4);
     Vec3D wind_change = rand_factor * RandVec(lwind_change, uwind_change);
 
     return (wind_force + wind_change).LimVec(MAX_WIND);
 }
-

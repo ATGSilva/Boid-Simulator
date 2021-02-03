@@ -23,4 +23,4 @@ void UpdatePos(Boid&);
 void Reset(Boid&, int);
 
 // Flock functions
-std::vector<Boid> GenFlock(int, double, double, double, double);
+std::vector<Boid> GenFlock(int, int, int, int, int);

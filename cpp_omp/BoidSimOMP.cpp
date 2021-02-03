@@ -1,4 +1,17 @@
-// -*- adamgillard-cpp -*-
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+BoidSimOMP.cpp
+
+Main file for running a flocking boid behavioural simulation.
+
+FUNCTION SIGNATURE - RETURN TYPE
+    Argchecks(int, char*) - int
+    ProgBar() - void
+    Simulate(vector<Boid>&, Vec3D&, ofstream&) - void
+    Main(int, char*) - int
+*/
+
 #include <iostream>
 #include <fstream>
 #include <random>
@@ -7,18 +20,34 @@
 #include <chrono>
 #include <cmath>
 #include <omp.h>
-//#include <mpi.h>
+#include <string>
 #include "Neighbours.h"
 #include "Boid.h"
 #include "Vec3D.h"
 #include "Forces.h"
 #include "Settings.h"
+#include "Timing.h"
 
-float TIME = 0;
-int iters = 0;
+// Global Variable Definitions -------------
+float Time = 0;
+int Iters = 0;
+// Note: These are only global for this file.
+//------------------------------------------
 
-int ArgChecks(int argc, char* argv[])
+
+// Utilities ------------------------------------------------------------------------------------------------------
+
+int ArgChecks(int argc, char* argv[]) 
 {
+    /**
+        Performs checks on all execution input variables to ensure the program
+        will not crash due to misuse.
+      
+        @argc The number of input parameters supplied on execution.
+        @argv pointer to start element of array containing supplied input 
+        values.
+    */
+
     if (argc != 3)
     {
         std::cerr << "Usage: ./BoidSimOMP <Integer NUM_THREADS> <Integer NUM_BOIDS>" << std::endl;
@@ -40,139 +69,172 @@ int ArgChecks(int argc, char* argv[])
     else return 0;
 }
 
-void Simulate(std::vector<Boid>& flock, Vec3D& wind_force, std::ofstream& myfile)
-{   
-    int num_boids = flock.size();
-    // Calculate forces and movement updates on every boid in the flock parallel-wise
-    #pragma omp parallel for
-    for (int i = 0; i < num_boids; i++)
-    {
-        // Wind flock affects the entire flock by the same amount
-        flock[i].wind_force = wind_force;
-        // Other forces are dependent on the neighbours
-        CohereForce(flock, flock[i]);
-        SepForce(flock, flock[i]);
-        AlignForce(flock, flock[i]);
-        // Finally the bounding force from the walls
-        WallForce(flock[i]);
-        // Update the positions of the boids
-        UpdatePos(flock[i]);
-    } 
-    // To prevent race conditions and limit use of critical (slow), reloop through all sequentially to write to file and ensure proper reset
-    for (int i = 0; i < num_boids; i++)
-    {
-        // Reset the boid properties that vary each timestep
-        Reset(flock[i], iters);
-        myfile << TIME << "," << iters << "," << flock[i].id << "," << flock[i].pos << "\n";
-    }
-}
-
-void ProgBar()
+void ProgBar() 
 {
     // Start Progress Bar
     std::cout << "[";
     for (int i = 0; i < 70; i++)
     {
-        if (i < TIME/duration * 70) std::cout << "=";
-        else if (i == TIME/duration * 70) std::cout << ">";
+        if (i < Time/DURATION * 70) std::cout << "=";
+        else if (i == Time/DURATION * 70) std::cout << ">";
         else std::cout << " ";
     }
-    std::cout << "] " << int(TIME/duration * 100) << " %\r";
+    std::cout << "] " << int(Time/DURATION * 100) << " %\r";
     std::cout.flush();
     // End Progress Bar
 }
 
 
-int main(int argc, char* argv[])
+// Compiler instructions for readout file control ---------------------
+#define PROFILING 1
+#if PROFILING
+#define START_PSESSION(results) BeginResultSession(results)
+#define PROFILE_READOUT(results, boid) WriteResults(results, Time, Iters, boid)
+#define END_PSESSION(results) EndWriteSession(results)
+#else
+#define START_PSESSION(results)
+#define PROFILE_READOUT(results, boid)
+#define END_PSESSION(results)
+#endif
+
+#define BENCHMARK 1
+#if BENCHMARK
+#define START_TSESSION(timingfile, num_boids, threads) BeginTimingSession(timingfile, num_boids, threads)
+#define TIMER(name, timingfile) Timer timer(name, timingfile, Iters)
+#define END_TSESSION(timingfile) EndWriteSession(timingfile)
+#else
+#define START_TSESSION(timingfile, num_boids, threads)
+#define TIMER(name, timingfile)
+#define END_TSESSION(timingfile)
+#endif
+
+
+// Main Functionality -------------------------------------------------
+
+void Simulate(std::vector<Boid>& flock, Vec3D& wind_force, std::ofstream& results) 
 {
+    /**
+        Runs all force calculations and position updates in parallel. Resets boid
+        properties that vary on each timestep.
+      
+        @flock& memory reference to std::vector containing all boid objects.
+        @wind_force& memory reference to wind_force variable.
+        @results& memory reference to file which records time, frame and boid 
+        position.
+    */
+    int num_boids = flock.size();
+    
+    #pragma omp parallel for
+    for (int i = 0; i < num_boids; i++)
+    {
+        // Loop over every boid i in the flock, and calculate forces and update position
+        flock[i].wind_force = wind_force; // Wind flock affects the entire flock by the same amount
+        
+        CohereForce(flock, flock[i]);   //
+        SepForce(flock, flock[i]);      // Calculate core behavioural forces
+        AlignForce(flock, flock[i]);    //
+        WallForce(flock[i]);            // Finally the bounding force from the walls
+        UpdatePos(flock[i]);            // Update the positions of the boids
+    }
+
+    // To prevent race conditions and limit use of critical (slow)
+    // reloop through all sequentially to write to file and ensure proper reset
+    for (int i = 0; i < num_boids; i++)
+    {
+        Reset(flock[i], Iters); // Reset the boid properties that vary each timestep
+        // Write "current time, iteration number, boid ID number, boid position, boid velocity" to results file
+        PROFILE_READOUT(results, flock[i]);
+        //results << Time << "," << Iters << "," << flock[i].id << "," << flock[i].mass << "," << flock[i].pos << "," << flock[i].vel <<"\n";
+    }
+}
+
+int main(int argc, char* argv[]) 
+{
+    /**
+        Program to simulate the flocking behaviour of boids over N-bodies.
+        
+        NOTES
+        All instances of Timer are scope-based, hence the "random" use of
+        scopes for single functions. See "Timing.h" for details.
+    */
+
+    // INPUT CHECKS -----------------------------------------
     int argcheck = ArgChecks(argc, argv);
-    if (argcheck)
+    if (argcheck) 
         return 1;
 
-    //MPI_Init(NULL, NULL);
-
-    // Get the number of processes
-    //int world_size;
-    //MPI_Comm_size(MPI_COMM_WORLD, &world_size);
-
-    // Get the rank of the process
-    //int world_rank;
-    //MPI_Comm_rank(MPI_COMM_WORLD, &world_rank);
-
-    // Get the name of the processor
-    //char processor_name[MPI_MAX_PROCESSOR_NAME];
-    //int name_len;
-    //MPI_Get_processor_name(processor_name, &name_len);
-
-    // Finalize the MPI environment.
-    //MPI_Finalize();
-
-
-    int threads = std::strtol(argv[1], nullptr, 0);
-    int num_boids = std::strtol(argv[2], nullptr, 0);
-    std::cout << "Program initialised for " << num_boids << " boids using " << threads << " OpenMP threads." << std::endl;
-
-    omp_set_num_threads(threads); // Set OpenMP to use input no of threads
-    auto tstart = std::chrono::high_resolution_clock::now();
-
-    // Generate the flock in a vector on the heap
-    auto t1 = std::chrono::high_resolution_clock::now();
-    std::vector<Boid> flock = GenFlock(num_boids, pos_ulim, pos_llim, vel_ulim, vel_llim);
-    auto t2 = std::chrono::high_resolution_clock::now();
-    auto time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
-    std::cout << "Generated flock with " << flock.size() << " boids in " << time.count()/1e6 << " seconds.\n";
-
-    std::ofstream myfile;
-    myfile.open ("pos_dat.csv");
-    myfile << "Time,Frame,ID,X,Y,Z\n";
-
-    std::ofstream timingfile;
-    timingfile.open ("timing.csv");
-    timingfile << "Frame,Neighbour,Simulation\n";
-
-    Vec3D wind_force = RandWindForce();
+    // Variable Definitions & Declarations ------------------
+    const int threads = std::strtol(argv[1], nullptr, 0);
+    const int num_boids = std::strtol(argv[2], nullptr, 0);
+    std::vector<Boid> flock;
+    Vec3D wind_force;
     std::vector<double> distances;
+    std::ofstream results, timingfile;
 
-    while (TIME < duration)
+    // Other Setup ------------------------------------------
+    START_PSESSION(results);
+    START_TSESSION(timingfile, num_boids, threads);
+    //BeginTimingSession(timingfile, num_boids, threads);                     // Set up timing file ready to be written to
+    //BeginResultSession(results);                                            // Set up results file ready to be written to
+    omp_set_num_threads(threads);                                           // Set OpenMP to use input no of threads
+    flock = GenFlock(num_boids, POS_ULIM, POS_LLIM, VEL_ULIM, VEL_LLIM);    // Generate a flock of boids
+    wind_force = RandWindForce();                                           // Generate a random initial wind force
+
+    auto tstart = std::chrono::high_resolution_clock::now();
+    std::cout << "Program initialised for " << num_boids << " boids using " << threads << " OpenMP threads.\n";
+
+    // Run through all timesteps ---------------------------------------
+    while (Time < DURATION)
     {
+        Timer timer("Timestep", timingfile, Iters);
+
         // Find all neighbours and store them in boid objects
-        auto t1 = std::chrono::high_resolution_clock::now();
-        if (iters % buffer_for == 0)
-        {
-            
+        if (Iters % BUFFER_FOR == 0) // Don't use buffer
+        {    
+            { // Timing Scope
+            TIMER("Distances", timingfile);
+            //Timer timer("Distances", timingfile, Iters);
             distances = FindDists(flock);
+            }
+            TIMER("Neighb", timingfile);
+            //Timer timer("Neighb", timingfile, Iters);
             FindNeighbours(flock, distances);
-            
         }
-        else
+        else // Use buffer
         {
+            TIMER("NeighbBuffer", timingfile);
+            //Timer timer("NeighbBuffer", timingfile, Iters);
             UpdateNeighboursFromBuffer(flock, distances);
         }
-        auto t2 = std::chrono::high_resolution_clock::now();    
 
         // Complete force calculations, update positions and reset boids
-        Simulate(flock, wind_force, myfile);
-        auto t3 = std::chrono::high_resolution_clock::now(); 
-        // Evolve the wind force
-        wind_force = WindEvo(wind_force);
-
-        auto time_neighb = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
-        auto time_sim = std::chrono::duration_cast<std::chrono::microseconds>(t3-t2);
-        timingfile << iters << "," << time_neighb.count()/1e6 << "," << time_sim.count()/1e6 << "\n";
+        { // Timing Scope
+        TIMER("Simulate", timingfile);
+        //Timer timer("Simulate", timingfile, Iters);
+        Simulate(flock, wind_force, results);
+        }
         
-        if (iters % 10 == 0)
-            ProgBar();        
+        // Update Progress bar every 20 iterations
+        if (Iters % 20 == 0)
+        {
+            ProgBar();   
+        }
 
-        TIME += dt;
-        iters ++;
+        wind_force = WindEvo(wind_force); // Evolve the wind force
+        Time += DT; // Update time by timestep
+        Iters ++; // Add 1 to the iteration value
     }
-    ProgBar();
-    std::cout << std::endl;
     
-    myfile.close();
-    timingfile.close();
+    // Perform IO shutdown ----------------------------------
+    ProgBar();
+    END_PSESSION(results);
+    END_TSESSION(timingfile);
+    //EndWriteSession(timingfile);
+    //EndWriteSession(results);
+
     auto tend = std::chrono::high_resolution_clock::now();
     auto timetaken = std::chrono::duration_cast<std::chrono::microseconds>(tend-tstart);
-    std::cout << "Completed Simulation for " << duration/dt << " timesteps in " << timetaken.count()/1e6 << " seconds.\n";
+    std::cout << "\nCompleted Simulation for " << DURATION/DT << " timesteps in " << timetaken.count()/1e6 << " seconds.\n";
+
     return 0;
 }

@@ -30,6 +30,15 @@ FUNCTION SIGNATURE - RETURN TYPE
 // Core behavioural forces --------------------------------------------
 void CohereForce(const std::vector<Boid>& flock, Boid& boid)
 {
+    /**
+        Function to find NxN matrix of euclidean distances between all
+        boids. Acts over upper triangular matrix due to symmetric
+        nature of the problem.
+        
+        NOTES
+        
+    */
+
     int num_near = boid.near_list.size();
     if (num_near != 0)
     {

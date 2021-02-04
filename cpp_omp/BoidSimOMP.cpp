@@ -69,6 +69,14 @@ int ArgChecks(int argc, char* argv[])
     else return 0;
 }
 
+// Compiler instructions for progress bar control ---------------------
+#define PROGRESSUPDATE PROGRESS
+#if PROGRESSUPDATE
+#define PROGBAR() ProgBar()
+#else
+#define PROGBAR()
+#endif
+
 void ProgBar() 
 {
     // Start Progress Bar
@@ -86,7 +94,7 @@ void ProgBar()
 
 
 // Compiler instructions for readout file control ---------------------
-#define PROFILING 1
+#define PROFILING BOID_READOUT
 #if PROFILING
 #define START_PSESSION(results) BeginResultSession(results)
 #define PROFILE_READOUT(results, boid) WriteResults(results, Time, Iters, boid)
@@ -97,7 +105,7 @@ void ProgBar()
 #define END_PSESSION(results)
 #endif
 
-#define BENCHMARK 1
+#define BENCHMARK TIMING
 #if BENCHMARK
 #define START_TSESSION(timingfile, num_boids, threads) BeginTimingSession(timingfile, num_boids, threads)
 #define TIMER(name, timingfile) Timer timer(name, timingfile, Iters)
@@ -164,18 +172,16 @@ int main(int argc, char* argv[])
         return 1;
 
     // Variable Definitions & Declarations ------------------
-    const int threads = std::strtol(argv[1], nullptr, 0);
-    const int num_boids = std::strtol(argv[2], nullptr, 0);
+    const int threads = std::strtol(argv[1], nullptr, 0);   // Convert input strings to integers
+    const int num_boids = std::strtol(argv[2], nullptr, 0); // 
     std::vector<Boid> flock;
     Vec3D wind_force;
     std::vector<double> distances;
     std::ofstream results, timingfile;
 
     // Other Setup ------------------------------------------
-    START_PSESSION(results);
-    START_TSESSION(timingfile, num_boids, threads);
-    //BeginTimingSession(timingfile, num_boids, threads);                     // Set up timing file ready to be written to
-    //BeginResultSession(results);                                            // Set up results file ready to be written to
+    START_PSESSION(results);                                                // Set up timing file ready to be written to
+    START_TSESSION(timingfile, num_boids, threads);                         // Set up results file ready to be written to
     omp_set_num_threads(threads);                                           // Set OpenMP to use input no of threads
     flock = GenFlock(num_boids, POS_ULIM, POS_LLIM, VEL_ULIM, VEL_LLIM);    // Generate a flock of boids
     wind_force = RandWindForce();                                           // Generate a random initial wind force
@@ -193,31 +199,27 @@ int main(int argc, char* argv[])
         {    
             { // Timing Scope
             TIMER("Distances", timingfile);
-            //Timer timer("Distances", timingfile, Iters);
             distances = FindDists(flock);
             }
             TIMER("Neighb", timingfile);
-            //Timer timer("Neighb", timingfile, Iters);
             FindNeighbours(flock, distances);
         }
         else // Use buffer
         {
             TIMER("NeighbBuffer", timingfile);
-            //Timer timer("NeighbBuffer", timingfile, Iters);
             UpdateNeighboursFromBuffer(flock, distances);
         }
 
         // Complete force calculations, update positions and reset boids
         { // Timing Scope
         TIMER("Simulate", timingfile);
-        //Timer timer("Simulate", timingfile, Iters);
         Simulate(flock, wind_force, results);
         }
         
         // Update Progress bar every 20 iterations
         if (Iters % 20 == 0)
         {
-            ProgBar();   
+            PROGBAR();   
         }
 
         wind_force = WindEvo(wind_force); // Evolve the wind force
@@ -226,11 +228,9 @@ int main(int argc, char* argv[])
     }
     
     // Perform IO shutdown ----------------------------------
-    ProgBar();
+    PROGBAR();
     END_PSESSION(results);
     END_TSESSION(timingfile);
-    //EndWriteSession(timingfile);
-    //EndWriteSession(results);
 
     auto tend = std::chrono::high_resolution_clock::now();
     auto timetaken = std::chrono::duration_cast<std::chrono::microseconds>(tend-tstart);

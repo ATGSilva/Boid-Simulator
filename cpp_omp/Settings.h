@@ -44,5 +44,6 @@ const int NEAR_ALERT = 250;                         // Defines near distance
 const int CLOSE_ALERT = 10;                         // Defines close distance
 const float VISION_FOV = (2.0f / 3.0f) * M_PI;      // Defines angle over which a boid can see
 // File Output Control -------------------
-//const int TIMING = 1;                           // If true, readout timing data to file
-//const int BOID_READOUT = 1;                     // If true, readout boid property data to file
+#define TIMING 0                                    // If 1, readout timing data to file, else 0
+#define BOID_READOUT 1                              // If 1, readout boid property data to file, else 0
+#define PROGRESS 1                                  // If 1, show progress bar updates, else 0

@@ -12,21 +12,6 @@
 #include <cmath>
 #include <omp.h>
 
-void ProgBar(float& time)
-{
-    // Start Progress Bar
-    std::cout << "[";
-    for (int i = 0; i < 70; i++)
-    {
-        if (i < time/duration * 70) std::cout << "=";
-        else if (i == time/duration * 70) std::cout << ">";
-        else std::cout << " ";
-    }
-    std::cout << "] " << int(time/duration * 100) << " %\r";
-    std::cout.flush();
-    // End Progress Bar
-}
-
 struct NeighbourLists
 {
     NeighbourLists() {
@@ -69,11 +54,11 @@ NeighbourLists FindNeighbours(std::vector<Boid>& flock, int i, std::vector<doubl
         if (mag != 0)
             ang_ij = acos(DotProd(flock[i].vel, rel_vec_ij) / mag);
 
-        if (ang_ij < vision_ang)
+        if (ang_ij < VISION_FOV)
         {
-            if (dist_ij < close_alert)
+            if (dist_ij < CLOSE_ALERT)
                 lists.close_list.push_back(flock[j].id);
-            else if (dist_ij < near_alert)
+            else if (dist_ij < NEAR_ALERT)
                 lists.near_list.push_back(flock[j].id);
         }
     }
@@ -101,7 +86,6 @@ std::vector<Boid> Simulate(std::vector<Boid>& flock, int flock_start, int flock_
         // Update boid position
         UpdatePos(flock[i], force_list);
     }
-    ProgBar(time);
 
     return flock;
 }

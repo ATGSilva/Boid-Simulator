@@ -10,6 +10,7 @@ FUNCTION SIGNATURE - RETURN TYPE
     CohereForce(const vector<Boid>&, Boid&) - void
     SepForce(const vector<Boid>&, Boid&) - void
     AlignForce(const vector<Boid>&, Boid&) - void
+    NormaliseForce(Vec3D) - void
     WallForce(Boid&) - void
     RandWindForce - Vec3D
     WindEvo(Vec3D) - Vec3D
@@ -31,15 +32,20 @@ FUNCTION SIGNATURE - RETURN TYPE
 void CohereForce(const std::vector<Boid>& flock, Boid& boid)
 {
     /**
-        Function to find NxN matrix of euclidean distances between all
-        boids. Acts over upper triangular matrix due to symmetric
-        nature of the problem.
-        
+        Calculates the coherence pseudo-force acting on a single boid 
+        from all "near" boids.
+        If no boids are "near" then returns a zero vector.
+
+        EQUATION
+        Force = [(1/sum_neighbour_masses) * COM_neighbours] - boid.position
+
         NOTES
-        
+        Force is arbitrarily scaled in magnitude to exaggerate behaviour,
+        this can be done because we are using a pseudo-force.
     */
 
     int num_near = boid.near_list.size();
+    // If neighbours exist, calculate force, else return zero force vector
     if (num_near != 0)
     {
         float m_sum = 0;
@@ -47,50 +53,73 @@ void CohereForce(const std::vector<Boid>& flock, Boid& boid)
         const Vec3D bpos = boid.pos;
         const Vec3D bvel = boid.vel;
 
+        // For every id in near boid list, calculate mass sum and com 
         for (int id : boid.near_list)
         {
             m_sum += flock[id].mass;
-            pos_sum = pos_sum + ((1/flock[id].mass) * flock[id].pos);
+            pos_sum = pos_sum + (flock[id].mass * flock[id].pos);
         }
 
-        Vec3D target = ((1/m_sum) * pos_sum) - bpos;
-        double target_mag = sqrt(pow(target.x, 2) + pow(target.y, 2) + pow(target.z, 2));
-        if (target_mag != 0)
-            target = target * (MAX_VEL / target_mag);
-
-        boid.cohere_force = (target - bvel) * C_STR;
+        Vec3D cohere_force = ((1/m_sum) * pos_sum) - bpos;  // Calculate Force
+        NormaliseForce(cohere_force);                       // Normalise Force (see function)
+        boid.cohere_force = cohere_force * C_STR;           // Write scaled force to boid properties
     }
     else boid.cohere_force = Vec3D(); 
 }
 
 void SepForce(const std::vector<Boid>& flock, Boid& boid)
 {
+    /**
+        Calculates the separation pseudo-force acting on a single boid 
+        from all "close" boids.
+        If no boids are "close" then returns a zero vector.
+
+        EQUATION
+        Force = (1/sum_neighbour_masses) * Centre of Displacements
+
+        NOTES
+        Force is arbitrarily scaled in magnitude to exaggerate behaviour,
+        this can be done because we are using a pseudo-force.
+    */
+
     int num_close = boid.close_list.size();
+    // If neighbours exist, calculate force, else return zero force vector
     if (num_close != 0)
     {
         float m_sum = 0;
         Vec3D pos_sum = Vec3D();
         const Vec3D bvel = boid.vel;
 
+        // For every id in close boid list, calculate mass sum and centre of displacements 
         for (int id : boid.close_list)
         {
-            Vec3D disp_idb = boid.pos - flock[id].pos;
             m_sum += flock[id].mass;
+            Vec3D disp_idb = boid.pos - flock[id].pos;
             pos_sum = pos_sum + (flock[id].mass * disp_idb);
         }
 
-        Vec3D target = (1/m_sum) * pos_sum;
-        double target_mag = sqrt(pow(target.x, 2) + pow(target.y, 2) + pow(target.z, 2));
-        if (target_mag != 0)
-            target = target * (MAX_VEL / target_mag);
-
-        boid.sep_force = (target - bvel) * S_STR;
+        Vec3D sep_force = (1/m_sum) * pos_sum;  // Calculate Force
+        NormaliseForce(sep_force);              // Normalise force
+        boid.sep_force = sep_force * S_STR;     // Write scaled force to boid properties
     }
     else boid.sep_force = Vec3D();
 }
 
 void AlignForce(const std::vector<Boid>& flock, Boid& boid)
 {
+    /**
+        Calculates the alignment pseudo-force acting on a single boid 
+        from all "near" boids.
+        If no boids are "near" then returns a zero vector.
+
+        EQUATION
+        Force = [(1/sum(neighbour_masses)) * sum(neighbour_velcoities)] - boid.velocity
+
+        NOTES
+        Force is arbitrarily scaled in magnitude to exaggerate behaviour,
+        this can be done because we are using a pseudo-force.
+    */
+
     int num_near = boid.near_list.size();
 
     if (num_near != 0)
@@ -99,25 +128,41 @@ void AlignForce(const std::vector<Boid>& flock, Boid& boid)
         Vec3D vel_sum = Vec3D();
         const Vec3D bvel = boid.vel;
 
+        // For every id in close boid list, calculate mass sum and velocity sum
         for (int id : boid.near_list)
         {
             m_sum += flock[id].mass;
             vel_sum = vel_sum + (flock[id].mass * flock[id].vel);
         }
 
-        Vec3D target = (1/m_sum) * vel_sum;
-        double target_mag = sqrt(pow(target.x, 2) + pow(target.y, 2) + pow(target.z, 2));
-        if (target_mag != 0)
-            target = target * (MAX_VEL / target_mag);
-
-        boid.align_force = (target - bvel) * A_STR; 
+        Vec3D align_force = (1/m_sum) * vel_sum;            // Calculate Force
+        NormaliseForce(align_force);                        // Normalise Force
+        boid.align_force = (align_force - bvel) * A_STR;    // Write scaled force to boid properties
     }
     else boid.align_force = Vec3D();
+}
+
+void NormaliseForce(Vec3D& force)
+{
+    /**
+        Normalises a given force to the maximum velocity value.
+    */
+
+    double force_mag = sqrt(pow(force.x, 2) + pow(force.y, 2) + pow(force.z, 2));
+    if (force_mag != 0)
+        force = force * (MAX_VEL / force_mag);
 }
 
 // Bounding wall force ------------------------------------------------
 void WallForce(Boid& boid)
 {
+    /**
+        Calculates the bounding force acting on a single boid.
+        The force scales with the distance of the boid from the
+        bounding wall position in each cartesian axis.
+        Bounding box values are provided in Settings.h.
+    */
+
     const double x = boid.pos.x;
     const double y = boid.pos.y;
     const double z = boid.pos.z;
@@ -148,6 +193,11 @@ void WallForce(Boid& boid)
 // Wind force functions -----------------------------------------------
 Vec3D RandWindForce()
 {
+    /**
+        Generates a random wind force vector where values are
+        between a supplied (Settings.h) upper and lower bound.
+    */
+
     double uwind_force = MAX_WIND;
     double lwind_force = -MAX_WIND;
     return RandVec(lwind_force, uwind_force);
@@ -155,6 +205,15 @@ Vec3D RandWindForce()
 
 Vec3D WindEvo(Vec3D wind_force)
 {
+    /**
+        Randomly evolves a wind force.
+        The magnitude of the evolution is limited to between the +- 
+        value of the timestep multiplied by a random factor between 0.1
+        and 4, creating a more realistic wind evolution.
+        Wind force is limited to a maximum value defined in Settings.h.
+
+    */
+
     double uwind_change = DT;
     double lwind_change = -DT;
     double rand_factor = RandVal(0.1, 4);

@@ -1,4 +1,22 @@
-// -*- adamgillard-cpp -*-
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+Vec3D.cpp
+
+Dependancy file to be used in BoidSimOMP.cpp and BoidSimOMPMPI.cpp.
+Contains 3D Vector struct, modification functions and operator 
+overrides.
+
+FUNCTION SIGNATURE - RETURN TYPE
+    Vec3D::EuclidDist(Vec3D) - double
+    Vec3D::LimVec(const float) - Vec3D
+    Vec3D::Abs() - Vec3D
+    Vec3D::Mag() - double
+    DotProd(Vec3D, Vec3D) - double
+    RandVal(double, double) - double
+    RandVec(double, double) - Vec3D
+*/
+
 #include <iostream>
 #include <cmath>
 #include <random>
@@ -54,7 +72,7 @@ Vec3D Vec3D::LimVec(const float limit)
     double z_ = z;
     double norm_val = sqrt(pow(x_, 2) + pow(y_, 2) + pow(z_, 2));
 
-    if (norm_val > limit)
+    if (norm_val > limit && norm_val != 0)
     {
         double norm_fact = limit / norm_val;
         x_ = norm_fact * x_;

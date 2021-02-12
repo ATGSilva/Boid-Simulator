@@ -69,7 +69,7 @@ int ArgChecks(int argc, char* argv[])
     else return 0;
 }
 
-// Compiler instructions for progress bar control ---------------------
+// Compiler instructions for progress bar control
 #define PROGRESSUPDATE PROGRESS
 #if PROGRESSUPDATE
 #define PROGBAR() ProgBar()
@@ -152,7 +152,6 @@ void Simulate(std::vector<Boid>& flock, Vec3D& wind_force, std::ofstream& result
         Reset(flock[i], Iters); // Reset the boid properties that vary each timestep
         // Write "current time, iteration number, boid ID number, boid position, boid velocity" to results file
         PROFILE_READOUT(results, flock[i]);
-        //results << Time << "," << Iters << "," << flock[i].id << "," << flock[i].mass << "," << flock[i].pos << "," << flock[i].vel <<"\n";
     }
 }
 

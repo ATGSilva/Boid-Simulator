@@ -1,4 +1,7 @@
 // -*- adamgillard-cpp -*-
+
+// COMPILE: mpicxx -fopenmp BoidSimMPIOMP.cpp Simulate.cpp Forces.cpp Boid.cpp Vec3D.cpp -o BoidSim -O3
+// RUN: mpirun -np <NUM_PROCS> ./BoidSim <THREADS_PER_PROC> <NUM_BOIDS>
 #include "Boid.h"
 #include "Vec3D.h"
 #include "Forces.h"
@@ -58,7 +61,7 @@ MPI_Datatype VecDataType()
 
 MPI_Datatype BoidDataType(MPI_Datatype VECTYPE)
 {
-    Boid boid = Boid(Vec3D(1.,2.,3.), Vec3D(4.,5.,6.), 0);
+    Boid boid = Boid(Vec3D(1.0f,2.0f,3.0f), Vec3D(4.0f,5.0f,6.0f), 0);
     MPI_Datatype BOIDTYPE;
     int blens[4] = {1, 1, 1, 1};
     MPI_Aint bdisps[4] = {0};
@@ -89,10 +92,6 @@ int main(int argc, char* argv[])
     std::cout << "Program initialised for " << num_boids << " boids using " << threads << " OpenMP threads." << std::endl;
 
     omp_set_num_threads(threads); // Set OpenMP to use input no of threads
-    
-    const int MAXWORKER = 5;
-    const int MINWORKER = 1;
-    const int DIRECTOR = 0;
 
     MPI_Init(&argc, &argv);
     // Get the number of processes
@@ -104,7 +103,7 @@ int main(int argc, char* argv[])
     MPI_Comm_rank(MPI_COMM_WORLD, &taskid);
 
     // Set up tag lists
-    int num_timesteps = duration / dt;
+    int num_timesteps = DURATION / DT;
     std::vector<int> BEGIN_TAGS(num_timesteps);
     std::vector<int> WIND_TAGS(num_timesteps);
     std::vector<int> DONE_TAGS(num_timesteps);
@@ -141,7 +140,7 @@ int main(int argc, char* argv[])
     auto tstart = std::chrono::high_resolution_clock::now();
 
     MPI_Barrier(MPI_COMM_WORLD);
-    while (TIME < duration)
+    while (TIME < DURATION)
     {
         if (taskid == DIRECTOR)
         {
@@ -158,13 +157,13 @@ int main(int argc, char* argv[])
                 flock.reserve(num_boids);
                 // Generate the flock in a vector on the heap
                 auto t1 = std::chrono::high_resolution_clock::now();
-                flock = GenFlock(num_boids, pos_ulim, pos_llim, vel_ulim, vel_llim);
+                flock = GenFlock(num_boids, POS_ULIM, POS_LLIM, VEL_ULIM, VEL_LLIM);
                 auto t2 = std::chrono::high_resolution_clock::now();
                 auto time = std::chrono::duration_cast<std::chrono::microseconds>(t2-t1);
                 std::cout << "Generated flock with " << flock.size() << " boids in " << time.count()/1e6 << " seconds.\n";
 
                 myfile.open ("pos_dat.csv");
-                myfile << "Time,Frame,ID,X,Y,Z\n";
+                myfile << "Time,Frame,ID,Mass,X,Y,Z,VelX,VelY,VelZ\n";
 
                 timingfile.open ("timing.csv");
                 timingfile << "Frame,Neighbour,Simulation\n";
@@ -173,7 +172,7 @@ int main(int argc, char* argv[])
                 wind_force = RandWindForce();
             }
             
-            // Send full flock, full distance matrix and wind force to all workers
+            // Send full flock and wind force to all workers
             for (int w_id = 1; w_id < numworkers+1; w_id++)
             {
                 MPI_Send(&flock.front(), num_boids, BOIDTYPE, w_id, BEGIN_TAGS[iters], MPI_COMM_WORLD);
@@ -191,9 +190,10 @@ int main(int argc, char* argv[])
             }
 
             for (int num = 0; num < num_boids; num++)
-                myfile << TIME << "," << iters << "," << flock[num].id << "," << flock[num].pos << "\n";
+                myfile << TIME << "," << iters << "," << flock[num].mass << "," << flock[num].id << "," << flock[num].pos << "," << flock[num].vel << "\n";
 
             wind_force = WindEvo(wind_force);
+            ProgBar(TIME);
 
             // End Director code
         }
@@ -218,12 +218,14 @@ int main(int argc, char* argv[])
 
             MPI_Send(&flock[flock_start], split_by, BOIDTYPE, DIRECTOR, DONE_TAGS[iters], MPI_COMM_WORLD);
 
+            flock.clear();
+
             // End Worker Code
         }
 
         MPI_Barrier(MPI_COMM_WORLD);
 
-        TIME += dt;
+        TIME += DT;
         iters += 1;
     }
     
@@ -241,7 +243,7 @@ int main(int argc, char* argv[])
         timingfile.close();
         auto tend = std::chrono::high_resolution_clock::now();
         auto timetaken = std::chrono::duration_cast<std::chrono::microseconds>(tend-tstart);
-        std::cout << "\nCompleted Simulation for " << duration/dt << " timesteps in " << timetaken.count()/1e6 << " seconds.\n";
+        std::cout << "\nCompleted Simulation for " << DURATION/DT << " timesteps in " << timetaken.count()/1e6 << " seconds.\n";
     }
     
 

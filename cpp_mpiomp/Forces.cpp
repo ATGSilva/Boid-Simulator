@@ -24,7 +24,7 @@ Vec3D CohereForce(std::vector<Boid>& flock, Boid& boid, std::vector<int>& near_l
         for (int id : near_list)
         {
             m_sum += flock[id].mass;
-            pos_sum = pos_sum + ((1/flock[id].mass) * flock[id].pos);
+            pos_sum = pos_sum + (flock[id].mass * flock[id].pos);
         }
 
         Vec3D target = ((1/m_sum) * pos_sum) - bpos;
@@ -32,7 +32,7 @@ Vec3D CohereForce(std::vector<Boid>& flock, Boid& boid, std::vector<int>& near_l
         if (target_mag != 0)
             target = target * (MAX_VEL / target_mag);
 
-        cohere_force = (target - bvel) * C_STR;
+        cohere_force = target * C_STR;
     }
     else cohere_force = Vec3D();
 
@@ -61,7 +61,7 @@ Vec3D SepForce(std::vector<Boid>& flock, Boid& boid, std::vector<int>& close_lis
         if (target_mag != 0)
             target = target * (MAX_VEL / target_mag);
 
-        sep_force = (target - bvel) * S_STR;
+        sep_force = target * S_STR;
     }
     else sep_force = Vec3D();
 
@@ -102,18 +102,18 @@ Vec3D WallForce(Boid& boid)
     const double y = boid.pos.y;
     const double z = boid.pos.z;
 
-    int x_ubound = (x > wall_ubound);
-    int y_ubound = (y > wall_ubound);
-    int z_ubound = (z > wall_ubound);
+    int x_ubound = (x > WALL_UBOUND);
+    int y_ubound = (y > WALL_UBOUND);
+    int z_ubound = (z > WALL_UBOUND);
 
-    int x_lbound = (x < wall_lbound);
-    int y_lbound = (y < wall_lbound);
-    int z_lbound = (z < wall_lbound);
+    int x_lbound = (x < WALL_LBOUND);
+    int y_lbound = (y < WALL_LBOUND);
+    int z_lbound = (z < WALL_LBOUND);
 
     Vec3D which_pos_wall = Vec3D(x_ubound, y_ubound, z_ubound);
     Vec3D which_neg_wall = Vec3D(x_lbound, y_lbound, z_lbound);
-    Vec3D u_bounds = Vec3D(wall_ubound, wall_ubound, wall_ubound);
-    Vec3D l_bounds = Vec3D(wall_lbound, wall_lbound, wall_lbound);
+    Vec3D u_bounds = Vec3D(WALL_UBOUND, WALL_UBOUND, WALL_UBOUND);
+    Vec3D l_bounds = Vec3D(WALL_LBOUND, WALL_LBOUND, WALL_LBOUND);
     Vec3D wall_force = Vec3D();
 
     if (x_ubound || y_ubound || z_ubound)
@@ -134,8 +134,8 @@ Vec3D RandWindForce()
 
 Vec3D WindEvo(Vec3D wind_force)
 {
-    double uwind_change = dt;
-    double lwind_change = -dt;
+    double uwind_change = DT;
+    double lwind_change = -DT;
     double rand_factor = RandVal(0.1, 4);
     Vec3D wind_change = rand_factor * RandVec(lwind_change, uwind_change);
 

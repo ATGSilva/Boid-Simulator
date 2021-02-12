@@ -44,19 +44,19 @@ void UpdatePos(Boid& boid, Forces& force_list)
     total_force = total_force.LimVec(MAX_FORCE);
 
     Vec3D acc = ((1/boid.mass) * total_force).LimVec(MAX_ACC);
-    boid.vel = (boid.vel + (dt * acc)).LimVec(MAX_VEL);
-    boid.pos = boid.pos + (dt * boid.vel);
+    boid.vel = (boid.vel + (DT * acc)).LimVec(MAX_VEL);
+    boid.pos = boid.pos + (DT * boid.vel);
 }
 
-std::vector<Boid> GenFlock(int num_boids, double pos_ulim, double pos_llim, double vel_ulim, double vel_llim)
+std::vector<Boid> GenFlock(int num_boids, double POS_ULIM, double POS_LLIM, double VEL_ULIM, double VEL_LLIM)
 {
     std::vector<Boid> flock;
     flock.reserve(num_boids);
     for (int i = 0; i < num_boids; i++) 
     {
-        Vec3D rand_pos = RandVec(pos_ulim, pos_llim);
+        Vec3D rand_pos = RandVec(POS_ULIM, POS_LLIM);
         rand_pos.z = 0.;
-        Vec3D rand_vel = RandVec(vel_ulim, vel_llim);
+        Vec3D rand_vel = RandVec(VEL_ULIM, VEL_LLIM);
         flock.emplace_back(Boid(rand_pos, rand_vel, i));
     }
     return flock;

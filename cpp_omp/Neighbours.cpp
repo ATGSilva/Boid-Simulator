@@ -26,7 +26,6 @@ FUNCTION SIGNATURE - RETURN TYPE
 #include "Settings.h"
 
 
-// Distance Finding ---------------------------------------------------
 std::vector<double> FindDists(std::vector<Boid>& flock)
 {
     /**
@@ -94,6 +93,14 @@ float FovAngle(Boid& bi, Boid& bj)
     return ang_ij;
 }
 
+// Compiler instructions for progress bar control ---------------------
+#define FOV VISION
+#if FOV
+#define FOVANGLE(Boid1, Boid2) FovAngle(Boid1, Boid2)
+#else
+#define FOVANGLE(Boid1, Boid2) 0
+#endif
+
 void FindNeighbours(std::vector<Boid>& flock, std::vector<double>& dists)
 {
     /**
@@ -129,22 +136,31 @@ void FindNeighbours(std::vector<Boid>& flock, std::vector<double>& dists)
                 double dist_ij = dists[(i *num_boids) + j];
 
                 // Calculate the angle from i velocity to j position
-                float ang_ij = FovAngle(flock[i], flock[j]);
+                float ang_ij = FOVANGLE(flock[i], flock[j]); //FovAngle(flock[i], flock[j]);
 
                 // If j is within i field-of-view (i can see j) then append
                 // j to corresponding neighbour list of i
                 if (ang_ij < VISION_FOV)
                 {
                     if (dist_ij < CLOSE_ALERT)
+                    {
                         flock[i].close_list.push_back(flock[j].id);
+                    }   
                     else if (dist_ij < NEAR_ALERT)
+                    {
                         flock[i].near_list.push_back(flock[j].id);
+                    }   
                 }
 
                 // Regardless of field-of-view, append j to i buffer list
                 // if it is within the buffer region
                 if (dist_ij < BUFFER_ALERT)
                     flock[i].buffer_list.push_back(flock[j].id);
+
+                if (flock[i].near_list.size() < 1)
+                {
+                    flock[i].near_list.push_back(flock[i+1].id);
+                }
             }
         }
 }
@@ -188,9 +204,13 @@ void UpdateNeighboursFromBuffer(std::vector<Boid>& flock, std::vector<double>& d
             if (ang_iid < VISION_FOV)
             {
                 if (dist_iid < CLOSE_ALERT)
+                {
                     flock[i].close_list.push_back(flock[id].id);
+                } 
                 else if (dist_iid < NEAR_ALERT)
+                {
                     flock[i].near_list.push_back(flock[id].id);
+                } 
             }
         }
 }

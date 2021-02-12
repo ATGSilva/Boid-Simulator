@@ -1,33 +1,54 @@
-// -*- adamgillard-cpp -*-
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+Settings.h
+
+Contains constants to be used for files:
+    BoidSimOMP.cpp
+    BoidSimOMPMPI.cpp
+    Neighbours.cpp
+    Forces.cpp
+    Boid.cpp
+    Vec3D.cpp
+*/
 #pragma once
+// Include core header files
 #include <cmath>
 
-const short dims = 3;
-const float duration = 400;
-const float dt = 0.5;
-
-const int buffer_for = 1;
-
-const double wall_ubound = 1000;
-const double wall_lbound = 0;
-
-const double pos_ulim = wall_ubound;
-const double pos_llim = wall_lbound;
-const double vel_ulim = 15;
-const double vel_llim = -10;
-
-const float MAX_FORCE = 10;
-const float MAX_ACC = 18;
-const float MAX_VEL = 50;
-const float WALL_FORCE = MAX_FORCE;
-const float MAX_WIND = 1.5;
-
-const float C_STR = 0.06;
-const float S_STR = 0.25;
-const float A_STR = 0.35;
-
-const double buffer_alert = 300.0; // Defines buffer distance
-const double near_alert = 250.0; // Defines near distance
-const double close_alert = 10.0; // Defines close distance
-const double vision_ang = (2.0f / 3.0f) * M_PI; // Defines angle over which a boid can see
-
+// Timestep Settings ---------------------
+const float DURATION = 400.0f;                      // Total duration (seconds)
+const float DT = 0.5f;                              // Timestep (seconds)
+// Buffer Settings -----------------------
+const bool BUFFER = false;                          // Turn buffer on or off
+const int BUFFER_FOR = 1;                           // Number of iterations to buffer over
+// Bound Limit Settings ------------------
+const int WALL_UBOUND = 1000;                       // Upper wall boundary in all dimensions
+const int WALL_LBOUND = 0;                          // Lower wall boundary in all dimensions
+const int POS_ULIM = WALL_UBOUND;                   // Upper initial position limit
+const int POS_LLIM = WALL_LBOUND;                   // Lower initial position limit
+const int VEL_ULIM = 15;                            // Upper initial velocity limit
+const int VEL_LLIM = -10;                           // Lower initial velocity limit
+// Force Bound Settings ------------------
+const float MAX_FORCE = 10.0f;                      // Maximum force on boid
+const float MAX_ACC = 18.0f;                        // Maximum  boid acceleration
+const float MAX_VEL = 50.0f;                        // Maximum boid velocity
+const float WALL_FORCE = MAX_FORCE;                 // Wall force strength
+const float MAX_WIND = 1.5f;                        // Maximum wind force
+// Force Strength Multipliers ------------
+const float C_STR = 0.1f;//0.06f;                          // Coherence force strength modifier
+const float S_STR = 0.25f;                          // Separation force strength modifier
+const float A_STR = 0.35f;                          // Alignment force strength modifier
+// Neighbour Finding Settings ------------
+const int BUFFER_ALERT = 300;                       // Defines buffer distance
+const int NEAR_ALERT = 200;                         // Defines near distance
+const int CLOSE_ALERT = 10;                         // Defines close distance
+const float VISION_FOV = (2.0f / 3.0f) * M_PI;      // Defines angle over which a boid can see
+// MPI Specific Settings -----------------
+const int MAXWORKER = 6;
+const int MINWORKER = 1;
+const int DIRECTOR = 0;
+// File Output Control -------------------
+#define TIMING 0                                    // If 1, readout timing data to file, else 0
+#define BOID_READOUT 1                              // If 1, readout boid property data to file, else 0
+#define PROGRESS 1                                  // If 1, show progress bar updates, else 0
+#define VISION 1

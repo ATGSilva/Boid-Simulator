@@ -26,12 +26,12 @@ const int WALL_UBOUND = 1000;                       // Upper wall boundary in al
 const int WALL_LBOUND = 0;                          // Lower wall boundary in all dimensions
 const int POS_ULIM = WALL_UBOUND;                   // Upper initial position limit
 const int POS_LLIM = WALL_LBOUND;                   // Lower initial position limit
-const int VEL_ULIM = 15;                            // Upper initial velocity limit
-const int VEL_LLIM = -10;                           // Lower initial velocity limit
+const int VEL_ULIM = 45;                            // Upper initial velocity limit
+const int VEL_LLIM = -20;                           // Lower initial velocity limit
 // Force Bound Settings ------------------
 const float MAX_FORCE = 10.0f;                      // Maximum force on boid
 const float MAX_ACC = 18.0f;                        // Maximum  boid acceleration
-const float MAX_VEL = 60.0f;                        // Maximum boid velocity
+const float MAX_VEL = 50.0f;                        // Maximum boid velocity
 const float WALL_FORCE = MAX_FORCE;                 // Wall force strength
 const float MAX_WIND = 1.5f;                        // Maximum wind force
 // Force Strength Multipliers ------------
@@ -40,10 +40,11 @@ const float S_STR = 0.25f;                          // Separation force strength
 const float A_STR = 0.35f;                          // Alignment force strength modifier
 // Neighbour Finding Settings ------------
 const int BUFFER_ALERT = 300;                       // Defines buffer distance
-const int NEAR_ALERT = 250;                         // Defines near distance
+const int NEAR_ALERT = 200;                         // Defines near distance
 const int CLOSE_ALERT = 10;                         // Defines close distance
 const float VISION_FOV = (2.0f / 3.0f) * M_PI;      // Defines angle over which a boid can see
 // File Output Control -------------------
 #define TIMING 0                                    // If 1, readout timing data to file, else 0
 #define BOID_READOUT 1                              // If 1, readout boid property data to file, else 0
 #define PROGRESS 1                                  // If 1, show progress bar updates, else 0
+#define VISION 1

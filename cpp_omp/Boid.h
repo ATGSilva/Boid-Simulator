@@ -1,4 +1,17 @@
-// -*- adamgillard-cpp -*-
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+Boid.h
+
+Dependancy file to be used in BoidSimOMP.cpp.
+Contains boid struct and modification functions.
+
+FUNCTION SIGNATURE - RETURN TYPE
+    Reset(Boid&, int) - void
+    UpdatePos(Boid&) - void
+    GenFlock(int, int, int, int, int) - std::vector<Boid>
+*/
+
 #pragma once
 #include "Vec3D.h"
 #include <vector>
@@ -19,8 +32,8 @@ public:
     std::vector<int> near_list, close_list, buffer_list;
 };
 
-void UpdatePos(Boid&);
 void Reset(Boid&, int);
+void UpdatePos(Boid&);
 
 // Flock functions
 std::vector<Boid> GenFlock(int, int, int, int, int);

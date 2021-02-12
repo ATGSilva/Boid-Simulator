@@ -1,25 +1,9 @@
-/**
--*- adamgillard-cpp -*- Advanced Computational Physics -*-
-
-Timing.h
-
-Dependancy file to be used in BoidSimOMP.cpp.
-Contains functions to write data to file, including timings and boid
-properties.
-
-FUNCTION SIGNATURE - RETURN TYPE
-    BeginTimingSession(std::ofstream&, const int&, const int&) - void
-    BeginResultSession(std::ofstream&) - void
-    WriteResults(std::ofstream&, float, int, Boid&) - void
-    WriteTiming(std::ofstream&, const char*, int, std::chrono::microseconds) - void
-    EndWriteSession(std::ofstream&) - void
-*/
-
 #pragma once
 #include <chrono>
 #include <fstream>
 #include <sstream>
 #include <omp.h>
+#include "Boid.h"
 
 void BeginTimingSession(std::ofstream& timingfile, const int& num_boids, const int& threads)
 {
@@ -43,15 +27,16 @@ void WriteResults(std::ofstream& results, float time, int iter, Boid& boid)
     results << time << "," << iter << "," << boid.id << "," << boid.mass << "," << boid.pos << "," << boid.vel << "\n";
 }
 
+void EndWriteSession(std::ofstream& file)
+{
+    file.close();
+}
+
 void WriteTiming(std::ofstream& timingfile, const char* func_name, int iters, std::chrono::microseconds duration)
 {
     timingfile << iters << "," << func_name << "," << duration.count()/1e6 << "\n";
 }
 
-void EndWriteSession(std::ofstream& file)
-{
-    file.close();
-}
 
 class Timer
 {

@@ -100,6 +100,9 @@ float FovAngle(Boid& bi, Boid& bj)
 #else
 #define FOVANGLE(Boid1, Boid2) 0
 #endif
+// If VISION == 1, make call to FOVANGLE() call FovAngle()
+// Else, call to FOVANGLE() will always return 0
+
 
 void FindNeighbours(std::vector<Boid>& flock, std::vector<double>& dists)
 {
@@ -156,11 +159,12 @@ void FindNeighbours(std::vector<Boid>& flock, std::vector<double>& dists)
                 // if it is within the buffer region
                 if (dist_ij < BUFFER_ALERT)
                     flock[i].buffer_list.push_back(flock[j].id);
-
-                if (flock[i].near_list.size() < 1)
-                {
-                    flock[i].near_list.push_back(flock[i+1].id);
-                }
+            }
+            // If boid is lonely (no neighbours) give it an arbitrary
+            // neighbour to move it back toward the flock
+            if (flock[i].near_list.size() < 1)
+            {
+                flock[i].near_list.push_back(flock[i+1].id);
             }
         }
 }

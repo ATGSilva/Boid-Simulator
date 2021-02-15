@@ -11,6 +11,7 @@ FUNCTION SIGNATURE - RETURN TYPE
     UpdatePos(Boid&) - void
     GenFlock(int, int, int, int, int) - std::vector<Boid>
 */
+
 #include "Boid.h"
 #include "Vec3D.h"
 #include "Forces.h"

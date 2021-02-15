@@ -96,11 +96,11 @@ void ProgBar()
 // Compiler instructions for readout file control ---------------------
 #define PROFILING BOID_READOUT
 #if PROFILING
-#define START_PSESSION(results) BeginResultSession(results)
+#define START_PSESSION(results, num_boids, threads) BeginResultSession(results, num_boids, threads)
 #define PROFILE_READOUT(results, boid) WriteResults(results, Time, Iters, boid)
 #define END_PSESSION(results) EndWriteSession(results)
 #else
-#define START_PSESSION(results)
+#define START_PSESSION(results, num_boids, threads)
 #define PROFILE_READOUT(results, boid)
 #define END_PSESSION(results)
 #endif
@@ -179,7 +179,7 @@ int main(int argc, char* argv[])
     std::ofstream results, timingfile;
 
     // Other Setup ------------------------------------------
-    START_PSESSION(results);                                                // Set up timing file ready to be written to
+    START_PSESSION(results, num_boids, threads);                            // Set up timing file ready to be written to
     START_TSESSION(timingfile, num_boids, threads);                         // Set up results file ready to be written to
     omp_set_num_threads(threads);                                           // Set OpenMP to use input no of threads
     flock = GenFlock(num_boids, POS_ULIM, POS_LLIM, VEL_ULIM, VEL_LLIM);    // Generate a flock of boids
@@ -191,7 +191,7 @@ int main(int argc, char* argv[])
     // Run through all timesteps ---------------------------------------
     while (Time < DURATION)
     {
-        Timer timer("Timestep", timingfile, Iters);
+        TIMER("Timestep", timingfile);
 
         // Find all neighbours and store them in boid objects
         if (Iters % BUFFER_FOR == 0) // Don't use buffer

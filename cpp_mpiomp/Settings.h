@@ -48,7 +48,7 @@ const int MAXWORKER = 6;
 const int MINWORKER = 1;
 const int DIRECTOR = 0;
 // File Output Control -------------------
-#define TIMING 0                                    // If 1, readout timing data to file, else 0
+#define TIMING 1                                    // If 1, readout timing data to file, else 0
 #define BOID_READOUT 1                              // If 1, readout boid property data to file, else 0
 #define PROGRESS 1                                  // If 1, show progress bar updates, else 0
 #define VISION 1

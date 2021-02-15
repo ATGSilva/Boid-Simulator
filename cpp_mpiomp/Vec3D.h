@@ -1,4 +1,22 @@
-// -*- adamgillard-cpp -*-
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+Vec3D.h
+
+Dependancy file to be used in BoidSimOMP.cpp and BoidSimOMPMPI.cpp.
+Contains 3D Vector struct, modification functions and operator 
+overrides.
+
+FUNCTION SIGNATURE - RETURN TYPE
+    Vec3D::EuclidDist(Vec3D) - double
+    Vec3D::LimVec(const float) - Vec3D
+    Vec3D::Abs() - Vec3D
+    Vec3D::Mag() - double
+    DotProd(Vec3D, Vec3D) - double
+    RandVal(double, double) - double
+    RandVec(double, double) - Vec3D
+*/
+
 #pragma once
 #include <iostream>
 
@@ -22,8 +40,9 @@ struct Vec3D
     friend bool operator!=(const Vec3D, const Vec3D);
     friend std::ostream& operator<<(std::ostream&, const Vec3D);
 }__attribute__((__packed__));
+// __packed__ attribute assures no padding between properties in memory
+// to improve efficiency and reliability of MPI transfer.
 
 double DotProd(Vec3D, Vec3D);
-
 double RandVal(double, double);
 Vec3D RandVec(double, double);

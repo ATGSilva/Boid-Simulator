@@ -7,10 +7,10 @@ Dependancy file to be used for building BoidSimOMP.cpp.
 Contains boid force calculation functions.
 
 FUNCTION SIGNATURE - RETURN TYPE
+    NormaliseForce(Vec3D) - void    
     CohereForce(const vector<Boid>&, Boid&) - void
     SepForce(const vector<Boid>&, Boid&) - void
     AlignForce(const vector<Boid>&, Boid&) - void
-    NormaliseForce(Vec3D) - void
     WallForce(Boid&) - void
     RandWindForce - Vec3D
     WindEvo(Vec3D) - Vec3D
@@ -27,6 +27,18 @@ FUNCTION SIGNATURE - RETURN TYPE
 #include "Vec3D.h"
 #include "Settings.h"
 
+
+void NormaliseForce(Vec3D& force)
+{
+    /**
+        Normalises a given force to the maximum velocity value.
+        No return needed as it is editing the vector from memory ref.
+    */
+
+    double force_mag = sqrt(pow(force.x, 2) + pow(force.y, 2) + pow(force.z, 2));
+    if (force_mag != 0)
+        force = force * (MAX_VEL / force_mag);
+}
 
 // Core behavioural forces --------------------------------------------
 void CohereForce(const std::vector<Boid>& flock, Boid& boid)
@@ -121,7 +133,7 @@ void AlignForce(const std::vector<Boid>& flock, Boid& boid)
     */
 
     int num_near = boid.near_list.size();
-
+    
     if (num_near != 0)
     {
         float m_sum = 0;
@@ -142,16 +154,6 @@ void AlignForce(const std::vector<Boid>& flock, Boid& boid)
     else boid.align_force = Vec3D();
 }
 
-void NormaliseForce(Vec3D& force)
-{
-    /**
-        Normalises a given force to the maximum velocity value.
-    */
-
-    double force_mag = sqrt(pow(force.x, 2) + pow(force.y, 2) + pow(force.z, 2));
-    if (force_mag != 0)
-        force = force * (MAX_VEL / force_mag);
-}
 
 // Bounding wall force ------------------------------------------------
 void WallForce(Boid& boid)
@@ -167,28 +169,40 @@ void WallForce(Boid& boid)
     const double y = boid.pos.y;
     const double z = boid.pos.z;
 
-    int x_ubound = (x > WALL_UBOUND);
-    int y_ubound = (y > WALL_UBOUND);
-    int z_ubound = (z > WALL_UBOUND);
+    int x_ubound = (x > WALL_UBOUND);   // 
+    int y_ubound = (y > WALL_UBOUND);   // Check coordinates against upper bounds
+    int z_ubound = (z > WALL_UBOUND);   //
+    int x_lbound = (x < WALL_LBOUND);   //
+    int y_lbound = (y < WALL_LBOUND);   // Check coordinates against lower bounds
+    int z_lbound = (z < WALL_LBOUND);   //
 
-    int x_lbound = (x < WALL_LBOUND);
-    int y_lbound = (y < WALL_LBOUND);
-    int z_lbound = (z < WALL_LBOUND);
-
-    Vec3D which_pos_wall = Vec3D(x_ubound, y_ubound, z_ubound);
-    Vec3D which_neg_wall = Vec3D(x_lbound, y_lbound, z_lbound);
-    Vec3D u_bounds = Vec3D(WALL_UBOUND, WALL_UBOUND, WALL_UBOUND);
-    Vec3D l_bounds = Vec3D(WALL_LBOUND, WALL_LBOUND, WALL_LBOUND);
     Vec3D wall_force = Vec3D();
 
+    // If any coordinates are out of bounds, generate wall force
     if (x_ubound || y_ubound || z_ubound)
+    {
+        // Mask vector (1 if coord out of bounds, else 0)
+        Vec3D which_pos_wall = Vec3D(x_ubound, y_ubound, z_ubound);
+        // Wall-bounds coordinate Vector
+        Vec3D u_bounds = Vec3D(WALL_UBOUND, WALL_UBOUND, WALL_UBOUND);
+        // Calculate wall force, negative so multiply by -1
         wall_force = wall_force + (-1) * WALL_FORCE * (which_pos_wall * (boid.pos - u_bounds));
+    }
+        
 
     if (x_lbound || y_lbound || z_lbound)
+    {
+        // Mask vector (1 if coord out of bounds, else 0)
+        Vec3D which_neg_wall = Vec3D(x_lbound, y_lbound, z_lbound);
+        // Wall-bounds coordinate Vector
+        Vec3D l_bounds = Vec3D(WALL_LBOUND, WALL_LBOUND, WALL_LBOUND);
+        // Calculate wall force
         wall_force = wall_force +  WALL_FORCE * (which_neg_wall * (l_bounds - boid.pos));
-
+    }
+    
     boid.wall_force = wall_force.LimVec(WALL_FORCE);
 }
+
 
 // Wind force functions -----------------------------------------------
 Vec3D RandWindForce()
@@ -211,7 +225,6 @@ Vec3D WindEvo(Vec3D wind_force)
         value of the timestep multiplied by a random factor between 0.1
         and 4, creating a more realistic wind evolution.
         Wind force is limited to a maximum value defined in Settings.h.
-
     */
 
     double uwind_change = DT;

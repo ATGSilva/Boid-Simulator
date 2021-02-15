@@ -5,20 +5,25 @@
 #include <omp.h>
 #include "Boid.h"
 
-void BeginTimingSession(std::ofstream& timingfile, const int& num_boids, const int& threads)
+void BeginTimingSession(std::ofstream& timingfile, const int& num_boids, const int& mpi_nodes, const int& threads)
 {
     std::ostringstream tname;
     std::string tfilename;
 
-    tname << "data/" << "B" << num_boids << "Thr" << threads << ".csv";
+    tname << "timing/" << "B" << num_boids << "Nodes" << mpi_nodes << "Thr" << threads << ".csv";
     tfilename = tname.str();
     timingfile.open(tfilename);
     timingfile << "Frame,Function,Duration\n";
 }
 
-void BeginResultSession(std::ofstream& results)
+void BeginResultSession(std::ofstream& results, const int& num_boids, const int& mpi_nodes, const int& threads)
 {
-    results.open("pos_dat.csv");
+    std::ostringstream rname;
+    std::string rfilename;
+
+    rname << "boid_data/" << "B" << num_boids << "Nodes" << mpi_nodes << "Thr" << threads << ".csv";
+    rfilename = rname.str();
+    results.open(rfilename);
     results << "Time,Frame,ID,Mass,X,Y,Z,VelX,VelY,VelZ\n";
 }
 

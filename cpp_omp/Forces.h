@@ -8,7 +8,7 @@ FUNCTION SIGNATURE - RETURN TYPE
     SepForce(const vector<Boid>&, Boid&) - void
     AlignForce(const vector<Boid>&, Boid&) - void
     WallForce(Boid&) - void
-    RandWindForce - Vec3D
+    RandWindForce() - Vec3D
     WindEvo(Vec3D) - Vec3D
 */
 #pragma once

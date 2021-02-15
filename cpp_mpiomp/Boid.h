@@ -1,4 +1,16 @@
-// -*- adamgillard-cpp -*-
+/**
+-*- adamgillard-cpp -*- Advanced Computational Physics -*-
+
+Boid.h
+
+Dependancy file to be used in BoidSimMPIOMP.cpp.
+Contains boid struct and modification functions.
+
+FUNCTION SIGNATURE - RETURN TYPE
+    UpdatePos(Boid&, Forces&) - void
+    GenFlock(int, int, int, int, int) - std::vector<Boid>
+*/
+
 #pragma once
 #include "Vec3D.h"
 #include <vector>
@@ -15,6 +27,8 @@ struct Boid
     float mass;
     int id;
 }__attribute__((__packed__));
+// __packed__ attribute assures no padding between properties in memory
+// to improve efficiency and reliability of MPI transfer.
 
 struct Forces
 {
@@ -29,5 +43,5 @@ struct Forces
 void UpdatePos(Boid&, Forces&);
 
 // Flock functions
-std::vector<Boid> GenFlock(int, double, double, double, double);
+std::vector<Boid> GenFlock(int, int, int, int, int);
 

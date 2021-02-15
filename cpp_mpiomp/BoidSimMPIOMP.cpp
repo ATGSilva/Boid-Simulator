@@ -219,8 +219,11 @@ int main(int argc, char* argv[])
     if (remaining != 0)
     {
         // Force the number of boids to be a multiple of the number of cores used for easy splitting 
-        num_boids += (numtasks - remaining); 
-        std::cout << "Adding " << num_boids << " boids to allow even flock splitting." << "\n";
+        num_boids += (numtasks - remaining);
+        if (taskid == DIRECTOR)
+        {
+            std::cout << "Adding " << (numtasks - remaining) << " boids to allow even flock splitting." << "\n";
+        }
         split_by = num_boids / numtasks; // Recalculate split_by
     }
 

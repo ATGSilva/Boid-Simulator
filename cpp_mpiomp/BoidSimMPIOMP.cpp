@@ -282,7 +282,7 @@ int main(int argc, char* argv[])
             }
             {
                 TIMER("Simulate", timingfile);
-                flock = Simulate(flock, flock_start, flock_end, dist_matrix, wind_force);
+                flock = Simulate(flock, flock_start, flock_end, dist_matrix, wind_force, Time);
             }
             
             // Recieve simulated subflocks back from workers into flock
@@ -319,7 +319,7 @@ int main(int argc, char* argv[])
             // Perform calculation over a subset of the flock
             dist_matrix.resize(split_by * num_boids);
             dist_matrix = FindDists(flock, flock_start, flock_end, split_by);
-            flock = Simulate(flock, flock_start, flock_end, dist_matrix, wind_force);
+            flock = Simulate(flock, flock_start, flock_end, dist_matrix, wind_force, Time);
 
             // Send the simulated subflock back to Director
             MPI_Send(&flock[flock_start], split_by, BOIDTYPE, DIRECTOR, DONE_TAGS[Iters], MPI_COMM_WORLD);

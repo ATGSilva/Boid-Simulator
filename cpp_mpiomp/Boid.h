@@ -40,7 +40,7 @@ struct Forces
     Vec3D wall_force;
 };
 
-void UpdatePos(Boid&, Forces&);
+void UpdatePos(Boid&, Forces&, float);
 
 // Flock functions
 std::vector<Boid> GenFlock(int, int, int, int, int);

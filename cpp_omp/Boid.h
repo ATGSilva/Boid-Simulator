@@ -33,7 +33,7 @@ public:
 };
 
 void Reset(Boid&, int);
-void UpdatePos(Boid&);
+void UpdatePos(Boid&, float);
 
 // Flock functions
 std::vector<Boid> GenFlock(int, int, int, int, int);

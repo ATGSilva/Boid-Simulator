@@ -51,12 +51,12 @@ Forces::Forces()
 }
 
 
-void UpdatePos(Boid& boid, Forces& force_list)
+void UpdatePos(Boid& boid, Forces& force_list, float Time)
 {
     /**
         Updates the position of a boid using its forces. These are
         stored as struct properties so only input needed is the boid.
-        Uses the Euler method as position integrator. 
+        Uses the Leapfrog method as position integrator. 
     */
 
     // Calculate total force as sum of components, then limit to max
@@ -68,7 +68,16 @@ void UpdatePos(Boid& boid, Forces& force_list)
 
     // Calculate the updates to acceleration, velocity and position
     Vec3D acc = ((1/boid.mass) * total_force).LimVec(MAX_ACC);
-    boid.vel = (boid.vel + (DT * acc)).LimVec(MAX_VEL);
+    // On initital update, offset velocity by half a timestep
+    if (Time == 0)
+    {
+        boid.vel = (boid.vel + (DT/2)* acc).LimVec(MAX_VEL);
+    } 
+    // On every other timestep, update with offset carrying over
+    else 
+    {
+        boid.vel = (boid.vel + (DT * acc)).LimVec(MAX_VEL);
+    }
     boid.pos = boid.pos + (DT * boid.vel);
 }
 

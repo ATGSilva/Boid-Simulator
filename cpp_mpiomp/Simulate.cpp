@@ -175,7 +175,7 @@ NeighbourLists FindNeighbours(std::vector<Boid>& flock, int i, std::vector<doubl
 
 // Simulation ---------------------------------------------------------
 
-std::vector<Boid> Simulate(std::vector<Boid>& flock, int flock_start, int flock_end, std::vector<double>& distances, Vec3D wind_force)
+std::vector<Boid> Simulate(std::vector<Boid>& flock, int flock_start, int flock_end, std::vector<double>& distances, Vec3D wind_force, float Time)
 {
     /**
         Runs all force calculations and position updates in parallel.
@@ -200,7 +200,7 @@ std::vector<Boid> Simulate(std::vector<Boid>& flock, int flock_start, int flock_
         force_list.wind_force = wind_force; 
         force_list.wall_force = WallForce(flock[i]);
         // Update boid position
-        UpdatePos(flock[i], force_list);
+        UpdatePos(flock[i], force_list, Time);
     }
 
     return flock;

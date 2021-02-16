@@ -19,6 +19,6 @@ FUNCTION SIGNATURE - RETURN TYPE
 #include "Boid.h"
 
 std::vector<double> FindDists(std::vector<Boid>&, int, int, int);
-std::vector<Boid> Simulate(std::vector<Boid>&, int, int, std::vector<double>&, Vec3D);
+std::vector<Boid> Simulate(std::vector<Boid>&, int, int, std::vector<double>&, Vec3D, float);
 
 

@@ -142,7 +142,7 @@ void Simulate(std::vector<Boid>& flock, Vec3D& wind_force, std::ofstream& result
         SepForce(flock, flock[i]);      // Calculate core behavioural forces
         AlignForce(flock, flock[i]);    //
         WallForce(flock[i]);            // Finally the bounding force from the walls
-        UpdatePos(flock[i]);            // Update the positions of the boids
+        UpdatePos(flock[i], Time);            // Update the positions of the boids
     }
 
     // To prevent race conditions and limit use of critical (slow)

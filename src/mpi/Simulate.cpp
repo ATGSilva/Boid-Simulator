@@ -31,8 +31,8 @@ FUNCTION SIGNATURE - RETURN TYPE
 struct NeighbourLists
 {
     NeighbourLists() {
-        std::vector<int> close_list(1);
-        std::vector<int> near_list(1);
+        std::vector<int> close_list();
+        std::vector<int> near_list();
     };
 
     std::vector<int> close_list;
@@ -157,10 +157,14 @@ NeighbourLists FindNeighbours(std::vector<Boid>& flock, int i, std::vector<doubl
             if (ang_ij < VISION_FOV)
             {
                 if (dist_ij < CLOSE_ALERT)
+				{
                     lists.close_list.push_back(flock[j].id);
-                else if (dist_ij < NEAR_ALERT)
-                    lists.near_list.push_back(flock[j].id);
-            }
+                }
+				else if (dist_ij < NEAR_ALERT)
+                {
+					lists.near_list.push_back(flock[j].id);
+				}
+			}
         }
         
     }

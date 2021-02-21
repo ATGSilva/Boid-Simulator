@@ -50,7 +50,7 @@ std::vector<double> FindDists(std::vector<Boid>& flock)
     std::vector<double> distances(num_boids*num_boids, 0);
 
     // Operate over upper triagle - not including diagonal
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(guided,2)
     for (int i = 0; i < num_boids-1; i++)
         for (int j = i+1; j < num_boids; j++)
         {
@@ -128,7 +128,7 @@ void FindNeighbours(std::vector<Boid>& flock, std::vector<double>& dists)
     int num_boids = flock.size();
 
     // Operate over all NxN boids - non-symmetric problem
-    #pragma omp parallel for
+    #pragma omp parallel for schedule(guided,2)
     for (int i = 0; i < num_boids; i++)
         for (int j = 0; j < num_boids; j++)
         {
@@ -137,9 +137,8 @@ void FindNeighbours(std::vector<Boid>& flock, std::vector<double>& dists)
             {
                 // Read distance from ith to jth boid
                 double dist_ij = dists[(i *num_boids) + j];
-
                 // Calculate the angle from i velocity to j position
-                float ang_ij = FOVANGLE(flock[i], flock[j]); //FovAngle(flock[i], flock[j]);
+                float ang_ij = FOVANGLE(flock[i], flock[j]);
 
                 // If j is within i field-of-view (i can see j) then append
                 // j to corresponding neighbour list of i

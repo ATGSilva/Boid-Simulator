@@ -241,7 +241,7 @@ int main(int argc, char* argv[])
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
-        std::cout << "Program initialised for " << num_boids << " boids using " << (threads*numtasks) << " OpenMP threads across " << numtasks << " MPI cores.\n";
+        std::cout << "Program initialised for " << num_boids << " boids using " << (threads*numtasks) << " OpenMP threads across " << numtasks << " MPI nodes.\n";
 
         // Generate the flock in a vector on the heap
         flock.reserve(num_boids);
@@ -298,7 +298,12 @@ int main(int argc, char* argv[])
 
             // Evolve the wind force
             wind_force = WindEvo(wind_force);
-            PROGBAR();
+			
+            // Update Progress bar every 20 iterations
+			if (Iters % 20 == 0)
+			{
+				PROGBAR();   
+			}
 
             // END DIRECTOR CODE --------------------------------------
         }
@@ -332,8 +337,8 @@ int main(int argc, char* argv[])
 
         // Syncronise at end of timestep
         MPI_Barrier(MPI_COMM_WORLD);
-        Time += DT;
-        Iters += 1;
+        Time += DT; // Update time by timestep
+        Iters ++; // Add 1 to the iteration value
     }
     
     
@@ -352,6 +357,7 @@ int main(int argc, char* argv[])
         END_TSESSION(timingfile);
         auto tend = std::chrono::high_resolution_clock::now();
         auto timetaken = std::chrono::duration_cast<std::chrono::microseconds>(tend-tstart);
+		WriteSettings(num_boids, numtasks, threads);
         std::cout << "\nCompleted Simulation for " << DURATION/DT << " timesteps in " << timetaken.count()/1e6 << " seconds.\n";
     }
 

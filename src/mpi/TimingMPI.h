@@ -75,3 +75,47 @@ private:
     int iters;
     bool m_Stopped;
 };
+
+void WriteSettings(int num_boids, int nodes, int ppn)
+{
+    std::ofstream settings;
+    settings.open("boid_data/settings.cfg");
+
+    settings << "[Program]\n";
+    settings << "type = MPI\n";
+    settings << "number_boids = " << num_boids << "\n";
+    settings << "number_nodes = " << nodes << "\n";
+    settings << "number_procs_per_node = " << ppn << "\n";
+    settings << "\n[Time]\n";
+    settings << "duration = " << DURATION << "\n";
+    settings << "timestep = " << DT << "\n";
+    settings << "\n[Bounds]\n";
+    settings << "wall_bound_upper = " << WALL_UBOUND << "\n";
+	settings << "wall_bound_lower = " << WALL_LBOUND << "\n";
+    settings << "random_position_bounds = [" << POS_LLIM << ", " << POS_ULIM << "]\n";
+    settings << "random_velocity_bounds = [" << VEL_LLIM << ", " << VEL_ULIM << "]\n";
+    settings << "\n[Kinematic Limits]\n";
+    settings << "max_force = " << MAX_FORCE << "\n";
+    settings << "max_acceleration = " << MAX_ACC << "\n";
+    settings << "max_velocity = " << MAX_VEL << "\n";
+    settings << "wall_force = " << WALL_FORCE << "\n";
+    settings << "max_wind_force = " << MAX_WIND << "\n";
+    settings << "\n[Force Multipliers]\n";
+    settings << "coherence_multiplier = " << C_STR << "\n";
+    settings << "separation_multipler = " << S_STR << "\n";
+    settings << "allignment_multipler = " << A_STR << "\n";
+    settings << "\n[Neighbour Finding]\n";
+    settings << "near_radius = " << NEAR_ALERT << "\n";
+    settings << "too_close_radius = " << CLOSE_ALERT << "\n";
+    settings << "field_of_view = " << VISION_FOV << "\n";
+    settings << "\n[MPI]\n";
+    settings << "max_workers = " << MAXWORKER << "\n";
+    settings << "min_workers = " << MINWORKER << "\n";
+    settings << "\n[Control]\n";
+    settings << "timing_readout = " << TIMING << "\n";
+    settings << "boid_readout = " << BOID_READOUT << "\n";
+    settings << "progress_bar_onoff = " << PROGRESS << "\n";
+    settings << "vision_onoff = " << VISION << "\n";
+
+    settings.close();
+}

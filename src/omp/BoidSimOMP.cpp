@@ -233,6 +233,7 @@ int main(int argc, char* argv[])
 
     auto tend = std::chrono::high_resolution_clock::now();
     auto timetaken = std::chrono::duration_cast<std::chrono::microseconds>(tend-tstart);
+	WriteSettings(num_boids, threads);
     std::cout << "\nCompleted Simulation for " << DURATION/DT << " timesteps in " << timetaken.count()/1e6 << " seconds.\n";
 
     return 0;

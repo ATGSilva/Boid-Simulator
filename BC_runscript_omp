@@ -1,0 +1,31 @@
+#!/bin/bash
+#PBS -l nodes=1:ppn=16,walltime=01:00:00
+#PBS -N BoidSimOMP
+
+# Define the working directory
+export MYDIR="/newhome/ag17009/BoidSimulator"
+# cd into working directory
+cd $PBS_O_WORKDIR
+
+#-------------------------------------------------
+# Don’t change anything below this line
+#-------------------------------------------------
+
+export JOBNO="`echo $PBS_JOBID | sed s/.master.cm.cluster//`"
+export CONF="$MYDIR/machines.$JOBNO"
+for i in `cat $PBS_NODEFILE`;
+do echo $i >> $CONF
+done
+export numnodes=`cat $PBS_NODEFILE|wc -l`
+
+#-------------------------------------------------
+# Below are executions
+# ./BoidSim <Threads> <Num_Boids>
+# Do not set <Threads> above the requested ppn!
+#-------------------------------------------------
+
+make build_omp
+./BoidSim 16 5000
+
+
+

@@ -213,14 +213,15 @@ double RandVal(double min, double max)
 {
     /**
         Generate a random value between min and max inputs using the
-        <random> header. Uniform real distribution.
+        <random> header. Uniform real distribution using the mersenne
+        twister enginer.
         
         RETURN
             double - random value between input values
     */
 
+    std::mt19937_64 val{std::random_device()()};
     std::uniform_real_distribution<double> unif(min, max);
-    static std::default_random_engine val;
 
     return unif(val);
 }

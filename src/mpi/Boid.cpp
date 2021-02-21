@@ -28,7 +28,7 @@ Boid::Boid(Vec3D p, Vec3D v, int ident)
     // Core properties only
     pos = p;
     vel = v;
-    mass = 1.f;
+    mass = 1.0f;
     id = ident;
 }
 
@@ -94,7 +94,7 @@ std::vector<Boid> GenFlock(int num_boids, int POS_ULIM, int POS_LLIM, int VEL_UL
     for (int i = 0; i < num_boids; i++) 
     {
         Vec3D rand_pos = RandVec(POS_ULIM, POS_LLIM);
-        rand_pos.z = 0.;
+        rand_pos.z = 0.0f;
         Vec3D rand_vel = RandVec(VEL_ULIM, VEL_LLIM);
         flock.emplace_back(Boid(rand_pos, rand_vel, i));
     }

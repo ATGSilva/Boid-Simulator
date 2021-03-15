@@ -50,7 +50,7 @@ def PlotBox(ax, wall_bounds):
 def animate(frame):
     global frame_id
     frame_id += skip_factor
-    ax1.view_init(30, (0.2*frame_id % 360))
+    ax1.view_init(20, (0.2*frame_id % 360))
     if not frame_id % (skip_factor*fps):
         print("Processing frames. Current Frame: ", frame_id, "of", int(duration/dt))
     scatter._offsets3d = (data.loc[data['Frame']==frame_id, 'X'],

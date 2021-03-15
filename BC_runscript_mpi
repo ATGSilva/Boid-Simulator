@@ -25,4 +25,4 @@ export numnodes=`cat $CONF|wc -l`
 #-------------------------------------------------
 
 make build_mpi
-mpirun -machinefile $CONF -np $numnodes ./BoidSim 16 5000
+mpirun -machinefile $CONF -np $numnodes ./BoidSimMPI 16 5000

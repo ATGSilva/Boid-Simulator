@@ -95,24 +95,23 @@ To build programs:
    - `cd src/omp`
    and
    - `g++ <FLAGS> BoidSimOMP.cpp Neighbours.cpp Forces.cpp Boid.cpp Vec3D.cpp 
-      -o ../../BoidSim`
+      -o ../../BoidSimOMP`
  - Build MPI Program:
    - `make build_mpi`
    or
    - `cd src/mpi`
    and
    - `mpicxx <FLAGS> BoidSimMPIOMP.cpp Simulate.cpp Forces.cpp Boid.cpp Vec3D.cpp 
-      -o ../../BoidSim`
-Note - building a new version will replace the previous build, MPI and OpenMP versions
-do not have their own program names - both build to BoidSim.
+      -o ../../BoidSimMPI`
+
 Note - manual build options can be used to add machine-specific flags.
 
 To run programs (from main directory):
 `make run_omp (NUM_BOIDS=<desired> OMP_THR=<number of threads>)`
 `make run_mpi (NUM_BOIDS=<desired> NP=<number of nodes> PPN=<threads per node>)`
 or
-`./BoidSim <number of threads> <number of boids>` == OpenMP
-`mpirun -np <number of nodes> ./BoidSim <threads per node> <number of boids>` == MPI
+`./BoidSimOMP <number of threads> <number of boids>` == OpenMP
+`mpirun -np <number of nodes> ./BoidSimMPI <threads per node> <number of boids>` == MPI
 
 
 ANIMATION & DASHBOARD PLOTTING
@@ -123,7 +122,7 @@ Dashboards include the above alongside animated average momentum and flocking
 coefficient plots.
 
 WARNING: These plot every single timestep as a frame. If you are using short timesteps
-(<0.25) you will need to change the `skip_factor` and/or `fps` at the top of the
+(<0.5) you will need to change the `skip_factor` and/or `fps` at the top of the
 "utilities/<omp/mpi>/plot_*.py" files for reasonable generation time and playback speed.
 
 Animations and dashboards read in the "boid_data/settings.cfg" file produced by the most
@@ -131,8 +130,9 @@ recent execution! It uses this information to read in the correct boid data file
 axes and produce flocking coefficients. If you wish to keep settings files for later
 plotting, create a copy of the file for later use - when you wish to use a file, make
 sure it is "boid_data/settings.cfg".
+
 If you wish to plot data produced on Blue Crystal, you must copy the following files to
-your local PC:
+your local PC alongside the utilities in the same directory structure:
  - For OpenMP files:
    - boid_data/B<num_boids>Thr<num_threads>.csv
    - boid_data/settings.cfg (corresponding to the correct execution run)
@@ -153,7 +153,7 @@ CLEAN
 -----
 
 The makefile option `make clean` will remove:
- - The binary build executable
+ - The binary executables
  - ALL contents of "timing/" including the directory
  - ALL contents of "boid_data/" including the directory
  - ALL contents of "animations/" including the directory

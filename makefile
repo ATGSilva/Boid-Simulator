@@ -16,15 +16,16 @@ build_omp:
 build_mpi:
 	@+$(MAKE) build -C src/mpi -s
 
-run_omp: BoidSim
-	@./BoidSim $(OMP_THR) $(NUM_BOIDS)
+run_omp: BoidSimOMP
+	@./BoidSimOMP $(OMP_THR) $(NUM_BOIDS)
 
-run_mpi: BoidSim
-	@mpirun -np $(NP) ./BoidSim $(PPN) $(NUM_BOIDS)
+run_mpi: BoidSimMPI
+	@mpirun -np $(NP) ./BoidSimMPI $(PPN) $(NUM_BOIDS)
 
 clean:
 	@echo "Cleaning binary executable, results and animation files."
-	@rm -f BoidSim
+	@rm -f BoidSimMPI
+	@rm -f BoidSimOMP
 	@rm -rf boid_data
 	@rm -rf timing
 	@rm -rf animations

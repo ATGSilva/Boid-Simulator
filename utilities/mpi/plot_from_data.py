@@ -49,7 +49,7 @@ def animate(frame):
     frame_id += skip_factor
     if not frame_id % (skip_factor*fps):
         print("Processing frames. Current Frame: ", frame_id, "of", int(duration/dt))
-    ax.view_init(30, (0.2*frame_id % 360))
+    ax.view_init(20, (0.2*frame_id % 360))
     scatter._offsets3d = (position_data.loc[position_data['Frame']==frame_id, 'X'],
                           position_data.loc[position_data['Frame']==frame_id, 'Y'],
                           position_data.loc[position_data['Frame']==frame_id, 'Z'])
